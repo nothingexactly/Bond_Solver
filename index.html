@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="d3.min.js" type="text/javascript"></script>
+        <script src="vol_calc_2.js" type="text/javascript"></script> 
+
+        <script type="text/javascript" language="javascript">
+            function write() {
+
+                var sliders = ["Coupon Rate","Price","Term to Maturity","Par Value"]; 
+                var params = [{name: "Coupon Rate", value: 0.01, domain:[0,0.05], constrained:[0,0.05]},
+                              {name: "Price", value: 100, domain:[0,200], constrained:[0,200]},
+                              {name: "Term to Maturity", value: 3, domain:[0,10], constrained:[0,10]},
+                              {name: "Par Value", value: 3, domain:[0,200], constrained:[0,10]}];
+
+/*
+                d3.select("body").append("input")
+                                 .attr("type","range")
+                                 .attr("min","0")
+                                 .attr("max","100")
+                                 .attr("id","sdr");
+*/               
+
+                d3.select("#sliders").selectAll("div").data(params)
+                                 .enter()
+                                 .append("div").text((d) => { return d.name; })
+                                 .append("input")
+                                     .attr("type","range")
+                                     .attr("min","0")
+                                     .attr("max","100")
+                                     .attr("domain_min",(d) => { return d.domain[0]; }) // not sure this is really necessary
+                                     .attr("domain_max",(d) => { return d.domain[1]; })
+                                     .attr("value",(d) => { return d.value*100/d.domain[1]; })
+                                     .on("input", function() { 
+                                                               console.log(this.value); 
+                                                               recalculateConstraints();  
+                                                             });
+
+                d3.select("#sliders").selectAll("div").data(params)
+                                 .append("span")
+                                 .text((d) => {return d.domain[1];});
+
+                function recalculateConstraints() {
+
+                }
+                
+                function updateVolatility() {
+
+                }
+
+                d3.select("body").append("div").attr("id","output");
+
+/*
+                d3.select("#sdr").on("input", function() {
+                    console.log(this.value);
+                });
+*/
+
+                var out = document.getElementById("output");       
+
+                var max_iterations = 5; 
+                var present_value = 80; 
+                var coupon_value = 5;
+                var years_to_maturity = 10;
+                var par_value = 70;
+
+
+                var yield_to_maturity = newton(max_iterations,
+                                               present_value,
+                                               coupon_value,
+                                               years_to_maturity,
+                                               par_value);
+
+                out.innerHTML = "YTM = "+yield_to_maturity+"<br />"; 
+                out.innerHTML += "Convergence = "+checkConvergence(yield_to_maturity,
+                                                                   present_value,
+                                                                   coupon_value,
+                                                                   years_to_maturity,
+                                                                   par_value);
+            } 
+
+            window.onload = write;
+        </script>
+    </head>
+
+    <body>
+        <div id="sliders"></div>
+        <!-- 
+        <div id="output">
+            
+        </div>
+        -->
+    </body>
+
+</html>
