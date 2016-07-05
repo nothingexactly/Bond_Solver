@@ -8,8 +8,7 @@ Yet to be implemented is interactivity and visual output (d3.js)
 
 * To learn about Automatic Differentiation
 * To learn some d3.js for interactive visualisation
-* So use Automatic Differentiation instead of the secant method for Newton-Raphson 
-* To implement Newton-Raphson to calculate Yield to Maturity
+* To use Automatic Differentiation instead of the secant method for Newton-Raphson 
 
 ## References
 
