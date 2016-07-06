@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <script src="d3.min.js" type="text/javascript"></script>
+        <!--        <script src="d3.min.js" type="text/javascript"></script> -->
+        <script src="https://d3js.org/d3.v4.min.js" type="text/javascript"></script>
         <script src="vol_calc_2.js" type="text/javascript"></script> 
 
         <script type="text/javascript" language="javascript">
@@ -20,6 +21,9 @@
                                  .attr("max","100")
                                  .attr("id","sdr");
 */               
+
+                // sliders seem only to return in the range 0 to 100
+                var domainOnlyScale = d3.scaleLinear().domain([0,10000]);
 
                 d3.select("#sliders").selectAll("div").data(params)
                                  .enter()
