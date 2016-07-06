@@ -2,9 +2,11 @@
 <meta charset="utf-8">
 <style>
 
+/*
 .chart rect {
   fill: steelblue;
 }
+*/
 
 .chart text {
   fill: white;
@@ -42,7 +44,10 @@ var chart = d3.select(".chart")
   var bar = chart.selectAll("g")
       .data(data)
     .enter().append("g")
-      .attr("transform", function(d, i) { return "translate(0," + i * barHeight + ")"; });
+      .attr("transform", function(d, i) { return "translate(0," + i * barHeight + ")"; })
+      .style("fill","steelblue")
+      .style("fill",function() { var a = d3.select(this).style("fill"); console.log(a); return a+""; })
+      .on("mouseover",function() { d3.select(this).style("fill","aliceblue");});
 
   bar.append("rect")
       .attr("width", function(d) { return x(d.value); })
