@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style type="text/css">
+            .axis path, .axis line {
+                fill: none;
+                stroke: black;
+                shape-rendering: crispEdges; /* an svg property */
+            }
+
+            .axis text {
+                font-family: sans-serif;
+                font-size: 11px;
+            }
+        </style>
+    </head>
+
+    <body>
+
+    </body>
+
+    <script type="text/javascript" language="javascript" src="d3.v3.min.js"></script>
+    <script type="text/javascript" language="javascript">
+       // Nb. at the moment, I don't like the non-uniform scaling of this chart
+       var dataset = [
+                       [5, 20], [480, 90], [250, 50], [100, 33], [330, 95],
+                       [410, 12], [475, 44], [25, 67], [85, 21], [220, 88]
+                     ];       
+       
+           dataset = [];
+            
+           for (var i = 0 ; i < 50 ; i++) {
+                dataset.push([Math.random()*200,Math.random()*100]);
+           }
+
+       var h = 400;
+       var w = 600; 
+       var pad = 30;
+       
+       // Scales
+
+       var x_scale = d3.scale.linear().domain([0,d3.max(dataset,d => d[0])])
+                                      .range([pad,w-2*pad]);
+
+       var y_scale = d3.scale.linear().domain([0,d3.max(dataset,d => d[1])])
+                                      .range([h-pad,pad]); 
+
+       var r_scale = d3.scale.linear().domain([0,d3.max(dataset,d => d[1])])
+                                      .range([2,5]);
+       // Chart and data
+       var bg = d3.rgb(196,228,255);
+       var svg = d3.select("body").append("svg")
+                                   .attr("width",w)
+                                   .attr("height",h)
+                                   .style("background-color",bg);
+       
+           svg.selectAll("circle").data(dataset)
+                                  .enter()
+                                  .append("circle")
+                                  .attr("cx",d => x_scale(d[0]))
+                                  .attr("cy",d => y_scale(d[1]))
+                                  .attr("r",d => r_scale(d[1]));
+
+           svg.selectAll("text").data(dataset)
+                                .enter()
+                                .append("text")
+                                .text(d => Math.round(d[0])+","+Math.round(d[1]))
+                                .attr("x",d => x_scale(d[0]))
+                                .attr("y",d => y_scale(d[1]))
+                                .attr("font-family", "sans-serif")
+                                .attr("font-size", "11px")
+                                .attr("fill", "steelblue");
+        // Axes
+        
+        // see also the tickFormat(), which is mentioned in the tutorial
+        var xAxis = d3.svg.axis()
+                          .scale(x_scale)
+                          .orient("bottom") 
+                          .ticks(5); // set to rough # of ticks
+
+        var yAxis = d3.svg.axis()
+                          .scale(y_scale)
+                          .orient("left") 
+                          .ticks(5); // set to rough # of ticks
+
+
+            svg.append("g")
+               .attr("class","axis")    // to help with styling 
+               .attr("transform","translate(0,"+(h - pad)+")") // trans to bottom
+               .call(xAxis);            // passes 'g' as param to xAxis
+
+            svg.append("g")
+               .attr("class","axis")    // to help with styling 
+               .attr("transform","translate("+pad+",0)") // shift to right 
+               .call(yAxis);
+
+//        var yAxis = d3.svg.axis()
+//                          .scale(
+
+    </script> 
+
+</html>
