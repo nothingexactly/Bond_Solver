@@ -17,7 +17,7 @@
        var dragging = true;
        var endDrag = true;
        var delta = [0,0];
-
+       var setLines;
        // Scales
 
        var x_scale = d3.scale.linear().domain([0,d3.max(dataset,d => d[0])])
@@ -33,9 +33,24 @@
        // Chart and data
        var bg = d3.rgb(196,228,255);
        var svg = d3.select("body").append("svg")
-                                   .attr("width",w)
-                                   .attr("height",h)
-                                   .style("background-color",bg);
+                                  .attr("width",w)
+                                  .attr("height",h)
+                                  .style("background-color",bg);
+
+        svg.selectAll("line").data(dataset)
+                             .enter()
+                             .append("line")
+                             .style("stroke","black");
+
+        setLines = () => {
+               svg.selectAll("line").data(dataset)
+                                    .attr("x1",0)
+                                    .attr("y1",d => y_scale(d[1]))
+                                    .attr("x2",d => x_scale(d[0]))
+                                    .attr("y2",d => y_scale(d[1]));
+        }      
+
+        setLines();
 
           var drag = d3.behavior.drag()
                 .on("drag", function(d,i) {
@@ -53,9 +68,10 @@
                     d3.select(this)
                       .attr("cx",x_scale(d[0]))
                       .attr("cy",y_scale(d[1]));
+                    
+                    setLines();
                 }); 
 
-      
            svg.selectAll("circle").data(dataset)
                                   .enter()
                                   .append("circle")
@@ -64,6 +80,8 @@
                                   //.attr("r",d => r_scale(d[1]))
                                   .attr("r",10)
                                   .call(drag);
+
+           
 
                svg.selectAll("text").data(dataset)
                                 .enter()
