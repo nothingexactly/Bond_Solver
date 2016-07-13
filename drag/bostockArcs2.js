@@ -9,7 +9,7 @@ var arc = d3.arc()          // v4 syntax vs v3: d3.svg.arc
     .innerRadius(180)
     .outerRadius(240)
     .startAngle(0);
-
+    
 // Create the SVG container, and apply a transform such that the origin is the
 // center of the canvas. This way, we don't need to position arcs individually.
 var svg = d3.select("body").append("svg")
@@ -22,7 +22,11 @@ var svg = d3.select("body").append("svg")
 var background = svg.append("path")
     .datum({endAngle: tau})
     .style("fill", "#ddd")
-    .attr("d", arc);
+    .attr("d", arc)
+    .on("mouseover", function(data,index){
+                                  console.log("something"); 
+                                         });
+
 
 // Add the foreground arc in orange, currently showing 12.7%.
 var foreground = svg.append("path")

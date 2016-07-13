@@ -91,22 +91,32 @@
               */
 
               var arc = d3.arc()
-                              .innerRadius(180)
-                              .outerRadius(240)
-                              .startAngle(0)
-                              .endAngle(Math.PI);
+                                .innerRadius(180)
+                                .outerRadius(240)
+                                .startAngle(0)
+                                .endAngle(Math.PI);
               
-              d3.select("#chart").append(arc())
-                                 .attr("cx",d => x_scale(dataset[0][0]))
-                                 .attr("cy",d => y_scale(dataset[0][1]))
+              d3.select("#chart").append("path")
+                                 .datum({})
+                                 .style("fill", "#ddd")
+                                 .attr("fill-opacity", .9)
+                                 .attr("d", arc)
+                                 .attr("transform", "translate(" + w / 2 + "," + h / 2 + ")")
+                                 .on("mouseover", function(data,index){
+                                                        console.log("something"); 
+                                                        d3.select("path").attr("d",arc.innerRadius(120));
+                                                  });
+
+                                 //.attr("cx",d => x_scale(dataset[0][0]))
+                                 //.attr("cy",d => y_scale(dataset[0][1]))
                                  //.attr("fill-opacity", .0)
-                                 .attr("stroke", "#000")
-                                 .attr("fill","orange")
+                                 //.attr("stroke", "#000")
+                                 //.attr("fill","orange")
                                  //.attr("stroke-width", 4)
                                  //.style("z-index", -1)
-                                 .on("mouseover", function(data,index){
-                                                    console.log("something"); 
-                                                  });
+                                 //.on("mouseover", function(data,index){
+                                 //                 console.log("something"); 
+                                 //               });
         }
         
             outerCircles();
