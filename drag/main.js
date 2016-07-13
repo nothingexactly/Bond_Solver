@@ -7,9 +7,9 @@
 
        var h = 400;
        var w = 600; 
-       var pad = 30;
+       var pad = 50;
        var setLines;
-       
+
        // Scales
 
        var x_scale = d3.scaleLinear().domain([0,d3.max(dataset,d => d[0])])
@@ -32,8 +32,8 @@
 
            svg.append("line").attr("id","touchY");
            svg.append("line").attr("id","touchX");
-             
-        svg.selectAll("line").style("stroke","black").attr("class","axis_readoff");
+           
+           svg.selectAll("line").style("stroke","black").attr("class","axis_readoff");
 
         setLines = (px,py) => {
                svg.select("#touchY").attr("x1",pad)
@@ -61,25 +61,63 @@
                         d3.select(this)
                           .attr("cx",px)
                           .attr("cy",py);
-                        
+
                         setLines(px,py);
                 }); 
           
-          var circles = svg.selectAll("circle").data(dataset)
+          var innerCircles = svg.selectAll("circle").data(dataset)
                                   .enter()
                                   .append("circle")
+                                  .attr("id",(d,i) => "c"+i)
                                   .attr("cx",d => x_scale(d[0]))
                                   .attr("cy",d => y_scale(d[1]))
                                   //.attr("r",d => r_scale(d[1]))
                                   .attr("r",6)
                                   .call(drag);
-             /* 
-              circles.on('click', function(data,index){
+                                 
+         function outerCircles() {
+             /*
+              d3.select("#chart").append("circle")
+                                 .attr("cx",d => x_scale(dataset[0][0]))
+                                 .attr("cy",d => y_scale(dataset[0][1]))
+                                 .attr("fill-opacity", .0)
+                                 .attr("stroke", "#000")
+                                 .attr("stroke-width", 4)
+                                 .attr("r",20)
+                                 .style("z-index", -1)
+                                 .on("mouseover", function(data,index){
+                                                    console.log("hello"); 
+                                                  });
+              */
+
+              var arc = d3.arc()
+                              .innerRadius(180)
+                              .outerRadius(240)
+                              .startAngle(0)
+                              .endAngle(Math.PI);
+              
+              d3.select("#chart").append(arc())
+                                 .attr("cx",d => x_scale(dataset[0][0]))
+                                 .attr("cy",d => y_scale(dataset[0][1]))
+                                 //.attr("fill-opacity", .0)
+                                 .attr("stroke", "#000")
+                                 .attr("fill","orange")
+                                 //.attr("stroke-width", 4)
+                                 //.style("z-index", -1)
+                                 .on("mouseover", function(data,index){
+                                                    console.log("something"); 
+                                                  });
+        }
+        
+            outerCircles();
+
+              innerCircles.on("mouseover", function(data,index){
+                                        d3.select(this).style("fill","steelblue");
+                                        console.log("goodbye"); 
                                         console.log(data);
                                   });
-             */
 
-               svg.selectAll("text").data(dataset)
+              svg.selectAll("text").data(dataset)
                                 .enter()
                                 .append("text")
                                 .text(d => Math.round(d[0])+","+Math.round(d[1]))
