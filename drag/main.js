@@ -1,3 +1,4 @@
+// Having problems adding an arc for each point
 // Nb. at the moment, I don't like the non-uniform scaling of this chart
        var dataset = [];
 
@@ -17,6 +18,7 @@
 
        var y_scale = d3.scaleLinear().domain([0,d3.max(dataset,d => d[1])])
                                      .range([h-pad,pad]); 
+
 /*
        var r_scale = d3.scale.linear().domain([0,d3.max(dataset,d => d[1])])
                                       .range([2,5]);
@@ -69,63 +71,43 @@
                                   .enter()
                                   .append("circle")
                                   .attr("id",(d,i) => "c"+i)
+                                  .attr("fill","black")
                                   .attr("cx",d => x_scale(d[0]))
                                   .attr("cy",d => y_scale(d[1]))
                                   //.attr("r",d => r_scale(d[1]))
                                   .attr("r",6)
+                                  .on("mouseover", function () {
+                                        d3.select(this).attr("fill","steelblue");
+                                  })
                                   .call(drag);
                                  
          function outerCircles() {
-             /*
-              d3.select("#chart").append("circle")
-                                 .attr("cx",d => x_scale(dataset[0][0]))
-                                 .attr("cy",d => y_scale(dataset[0][1]))
-                                 .attr("fill-opacity", .0)
-                                 .attr("stroke", "#000")
-                                 .attr("stroke-width", 4)
-                                 .attr("r",20)
-                                 .style("z-index", -1)
-                                 .on("mouseover", function(data,index){
-                                                    console.log("hello"); 
-                                                  });
-              */
 
-              var arc = d3.arc()
-                                .innerRadius(180)
+              var arc = d3.arc().innerRadius(180)
                                 .outerRadius(240)
                                 .startAngle(0)
                                 .endAngle(Math.PI);
-              
-              d3.select("#chart").append("path")
+             
+//              var x_positions = svg.").selectAll("circle");
+//                  console.log(x_positions);
+
+               // var s = d3.select("#chart").selectAll("path").enter().append("path")
+                          d3.select("#chart").append("path")
                                  .datum({})
+                                 // .data(dataset.slice())
                                  .style("fill", "#ddd")
                                  .attr("fill-opacity", .9)
                                  .attr("d", arc)
-                                 .attr("transform", "translate(" + w / 2 + "," + h / 2 + ")")
-                                 .on("mouseover", function(data,index){
+//                                 .attr("transform",(d,i) => { "translate(" + 400  + "," + h/2 + ")" })
+                                 .attr("transform", "translate(" + w/2 + "," + h/2 + ")" )
+                                 .on("mouseover", (data,index) => {
                                                         console.log("something"); 
                                                         d3.select("path").attr("d",arc.innerRadius(120));
                                                   });
-
-                                 //.attr("cx",d => x_scale(dataset[0][0]))
-                                 //.attr("cy",d => y_scale(dataset[0][1]))
-                                 //.attr("fill-opacity", .0)
-                                 //.attr("stroke", "#000")
-                                 //.attr("fill","orange")
-                                 //.attr("stroke-width", 4)
-                                 //.style("z-index", -1)
-                                 //.on("mouseover", function(data,index){
-                                 //                 console.log("something"); 
-                                 //               });
+                                 //console.log(s);
         }
         
             outerCircles();
-
-              innerCircles.on("mouseover", function(data,index){
-                                        d3.select(this).style("fill","steelblue");
-                                        console.log("goodbye"); 
-                                        console.log(data);
-                                  });
 
               svg.selectAll("text").data(dataset)
                                 .enter()
