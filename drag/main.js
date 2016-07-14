@@ -1,5 +1,4 @@
-// Having problems adding an arc for each point
-// Nb. at the moment, I don't like the non-uniform scaling of this chart
+// Is non-uniform scaling of chart a good idea?
        var dataset = [];
 
            for (var i = 0 ; i < 2; i++) {
@@ -9,7 +8,6 @@
        var h = 400;
        var w = 600; 
        var pad = 50;
-       var setLines;
 
        // Scales
 
@@ -37,7 +35,7 @@
            
            svg.selectAll("line").style("stroke","black").attr("class","axis_readoff");
 
-        setLines = (px,py) => {
+       function setLines(px,py) {
                svg.select("#touchY").attr("x1",pad)
                                     .attr("y1",py)
                                     .attr("x2",px)
@@ -47,7 +45,7 @@
                                     .attr("y1",py)
                                     .attr("x2",px)
                                     .attr("y2",h-pad);
-                              }      
+       }      
 
           var drag = d3.drag()
                 .on("drag", function(d,i) {
@@ -82,32 +80,25 @@
                                   .call(drag);
                                  
          function outerCircles() {
-
-              var arc = d3.arc().innerRadius(180)
-                                .outerRadius(240)
-                                .startAngle(0)
-                                .endAngle(Math.PI);
+              var arc = d3.arc().innerRadius(20)
+                                .outerRadius(25)
+                                .startAngle(-0.5)
+                                .endAngle(1.7);
              
-//              var x_positions = svg.").selectAll("circle");
-//                  console.log(x_positions);
-
-               // var s = d3.select("#chart").selectAll("path").enter().append("path")
-                          d3.select("#chart").append("path")
-                                 .datum({})
-                                 // .data(dataset.slice())
-                                 .style("fill", "#ddd")
-                                 .attr("fill-opacity", .9)
-                                 .attr("d", arc)
-//                                 .attr("transform",(d,i) => { "translate(" + 400  + "," + h/2 + ")" })
-                                 .attr("transform", "translate(" + w/2 + "," + h/2 + ")" )
-                                 .on("mouseover", (data,index) => {
+                          svg.selectAll("path").data(dataset).enter().append("path")
+                                               .style("fill", "#ff9933")
+                                               //.attr("fill-opacity",1)
+                                               .attr("id",() => { console.log("boo"); return Math.random(); })
+                                               .attr("d", arc)
+                                               .attr("transform",(d,i) => { return "translate(" + x_scale(d[0])  + "," + y_scale(d[1]) + ")"; } )
+                                               .on("mouseover", function () {
                                                         console.log("something"); 
-                                                        d3.select("path").attr("d",arc.innerRadius(120));
-                                                  });
-                                 //console.log(s);
+                                                        // some arbitrary change
+                                                        d3.select(this).attr("d",arc.innerRadius(10));
+                                                });
         }
         
-            outerCircles();
+        outerCircles();
 
               svg.selectAll("text").data(dataset)
                                 .enter()
