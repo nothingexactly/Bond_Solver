@@ -2,21 +2,21 @@
        var dataset = [];
 
            for (var i = 0 ; i < 2; i++) {
-                dataset.push([Math.random()*1200,Math.random()*1100,5+4*Math.random()]);
+                dataset.push([Math.random()*0.05,85+30*Math.random(),5+4*Math.random()]);
            }
 
        var h = 400;
        var w = 600; 
-       var pad = 50;
+       var pad = 70;
        var arcStroke = 10;
        var gap = 15;
 
        // Scales
 
-       var x_scale = d3.scaleLinear().domain([0,d3.max(dataset,d => d[0])])
-                                     .range([pad,w-2*pad]);
+       var x_scale = d3.scaleLinear().domain([0,0.05])
+                                     .range([pad,w-pad]);
 
-       var y_scale = d3.scaleLinear().domain([0,d3.max(dataset,d => d[1])])
+       var y_scale = d3.scaleLinear().domain([85,115])
                                      .range([h-pad,pad]); 
 
 /*
@@ -112,8 +112,7 @@
                                   .attr("fill","black")
                                   .attr("cx",d => x_scale(d[0]))
                                   .attr("cy",d => y_scale(d[1]))
-                                  .attr("r",d => d[2])                  // may need r_scale in time
-                                  //.attr("r",6)
+                                  .attr("r",7)                  
                                   .on("mouseover", function () {
                                         d3.select(this).attr("fill","steelblue");
                                   })
@@ -121,8 +120,6 @@
                                  
          function outerCircles() {
               var arc = d3.arc()
-                          //.innerRadius(20)
-                          //.outerRadius(25)
                           .startAngle(-0.5)
                           .endAngle(1.7);
              
@@ -142,7 +139,7 @@
         }
         
         outerCircles();
-
+/*
               svg.selectAll("text").data(dataset)
                                 .enter()
                                 .append("text")
@@ -152,7 +149,7 @@
                                 .attr("font-family", "sans-serif")
                                 .attr("font-size", "11px")
                                 .attr("fill", "steelblue");
-
+*/
         // Axes
         
         // see also the tickFormat(), which is mentioned in the tutorial
@@ -163,12 +160,29 @@
         var yAxis = d3.axisLeft(y_scale).ticks(5);
 
             svg.append("g")
-               .attr("class","axis")    // to help with styling 
+               .attr("class","xaxis axis")    // to help with styling 
                .attr("transform","translate(0,"+(h - pad)+")") // trans to bottom
                .call(xAxis);            // passes 'g' as param to xAxis
 
             svg.append("g")
-               .attr("class","axis")    // to help with styling 
+               .attr("class","yaxis axis")    // to help with styling 
                .attr("transform","translate("+pad+",0)") // shift to right 
                .call(yAxis);
 
+            svg.selectAll(".xaxis text")  // select all the text elements for the xaxis
+               .attr("transform", function(d) {
+               return "translate(" + this.getBBox().height*-2 + "," + this.getBBox().height + ")rotate(-45)";
+            });
+    
+            // now add titles to the axes
+            svg.append("text")
+                .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+                .attr("transform", "translate("+ (pad/3) +","+(h/2)+")rotate(-90)")  // text is drawn off the screen top left, move down and out and rotate
+                .attr("class","axis")
+                .text("Par Value");
+
+            svg.append("text")
+                .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+                .attr("transform", "translate("+ (w/2) +","+(h-(pad/3))+")")  // centre below axis
+                .attr("class","axis")
+                .text("Coupon Rate");
