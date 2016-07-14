@@ -2,12 +2,14 @@
        var dataset = [];
 
            for (var i = 0 ; i < 2; i++) {
-                dataset.push([Math.random()*1200,Math.random()*1100]);
+                dataset.push([Math.random()*1200,Math.random()*1100,5+4*Math.random()]);
            }
 
        var h = 400;
        var w = 600; 
        var pad = 50;
+       var arcStroke = 10;
+       var gap = 15;
 
        // Scales
 
@@ -47,7 +49,7 @@
                                     .attr("y2",h-pad);
        }      
 
-          var drag = d3.drag()
+          var dragInner = d3.drag()
                 .on("drag", function(d,i) {
                     var unitX = x_scale(1) - x_scale(0);
                     var unitY = y_scale(1) - y_scale(0);
@@ -61,10 +63,48 @@
                         d3.select(this)
                           .attr("cx",px)
                           .attr("cy",py);
-
+                        
+                        var circId = "#a"+d3.select(this).attr("id").substring(1,2);
+                        console.log(circId);
                         setLines(px,py);
+
+                    svg.select(circId).attr("transform","translate(" + px  + "," + py + ")");
                 }); 
           
+          var dragOuter = d3.drag()
+                .on("drag",function(d,i) {
+                    
+                    // may need some logic here to map r to the correct range 
+                    var rx = d3.event.dx;
+                    var ry = d3.event.dy;
+                    var sign = Math.abs(ry) / ry; 
+                    
+                    var delta_r = -sign * Math.sqrt(rx*rx+ry*ry); 
+                        delta_r = isNaN(delta_r) ? 0 : delta_r; 
+
+                    var thisArc = d3.select(this);
+                        
+                    var circId = "#a"+thisArc.attr("id").substring(1,2);
+
+                        console.log(circId);
+
+                        console.log(delta_r); 
+
+                    d[2] += delta_r; // is this ok?
+                    d[2] += delta_r; // is this ok?
+
+                    var arc = d3.arc()
+                                //.innerRadius(d[2])
+                                //.outerRadius(d[2]+5)
+                                .innerRadius(d[2])              // wonder if this will evaluate correctly
+                                .outerRadius(d[2]+arcStroke)
+                                .startAngle(-0.5)
+                                .endAngle(1.7);
+
+                       console.log("d2 = "+d[2]);
+                       thisArc.attr("d",arc);
+          });
+
           var innerCircles = svg.selectAll("circle").data(dataset)
                                   .enter()
                                   .append("circle")
@@ -72,30 +112,33 @@
                                   .attr("fill","black")
                                   .attr("cx",d => x_scale(d[0]))
                                   .attr("cy",d => y_scale(d[1]))
-                                  //.attr("r",d => r_scale(d[1]))
-                                  .attr("r",6)
+                                  .attr("r",d => d[2])                  // may need r_scale in time
+                                  //.attr("r",6)
                                   .on("mouseover", function () {
                                         d3.select(this).attr("fill","steelblue");
                                   })
-                                  .call(drag);
+                                  .call(dragInner);
                                  
          function outerCircles() {
-              var arc = d3.arc().innerRadius(20)
-                                .outerRadius(25)
-                                .startAngle(-0.5)
-                                .endAngle(1.7);
+              var arc = d3.arc()
+                          //.innerRadius(20)
+                          //.outerRadius(25)
+                          .startAngle(-0.5)
+                          .endAngle(1.7);
              
                           svg.selectAll("path").data(dataset).enter().append("path")
                                                .style("fill", "#ff9933")
+                                               .attr("id",(d,i) => "a"+i)
                                                //.attr("fill-opacity",1)
-                                               .attr("id",() => { console.log("boo"); return Math.random(); })
-                                               .attr("d", arc)
+                                               .attr("d", arc.innerRadius((d,i) => gap+d[2]).outerRadius((d,i) => d[2]+gap+arcStroke))
                                                .attr("transform",(d,i) => { return "translate(" + x_scale(d[0])  + "," + y_scale(d[1]) + ")"; } )
-                                               .on("mouseover", function () {
-                                                        console.log("something"); 
+                                               .on("mouseover", function (d,i) {
+                                                        console.log("hovering over arc"); 
+                                                        console.log(d);
                                                         // some arbitrary change
-                                                        d3.select(this).attr("d",arc.innerRadius(10));
-                                                });
+                                                        //d3.select(this).attr("d",arc.innerRadius(10));
+                                                })
+                                                .call(dragOuter);
         }
         
         outerCircles();
