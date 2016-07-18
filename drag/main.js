@@ -1,8 +1,20 @@
 // Is non-uniform scaling of chart a good idea?
        var dataset = [];
+       var outs = {};
+
+       outs.par = document.getElementById("par");
+       console.log(outs.par);
+       
+      
+       outs.coupon = document.getElementById("coupon");
+       outs.term = document.getElementById("term");
+       
+       outs.par.innerHTML = "I am par value";
+       outs.coupon.innerHTML = "I am coupon";
+       outs.term.innerHTML = "I am term to maturity";
 
            for (var i = 0 ; i < 2; i++) {
-                dataset.push([Math.random()*0.05,85+30*Math.random(),5+4*Math.random()]);
+                dataset.push([Math.random()*0.05,85+30*Math.random(),6]);
            }
 
        var h = 400;
@@ -10,6 +22,12 @@
        var pad = 70;
        var arcStroke = 10;
        var gap = 15;
+       
+       function recalculate(price,par,coupon,time) {
+            if (coupon * par * time + par  < price) {
+                 console.log("Increase coupon, par value, or term to maturity"); 
+            } 
+       }
 
        // Scales
 
@@ -19,14 +37,12 @@
        var y_scale = d3.scaleLinear().domain([85,115])
                                      .range([h-pad,pad]); 
 
-/*
-       var r_scale = d3.scale.linear().domain([0,d3.max(dataset,d => d[1])])
-                                      .range([2,5]);
-*/
+       var arc_scale = d3.scaleLinear().domain([3,10])
+                                       .range([20,50]);
 
        // Chart and data
        var bg = d3.rgb(196,228,255);
-       var svg = d3.select("body").append("svg")
+       var svg = d3.select("#ui").append("svg")
                                   .attr("id", "chart")
                                   .attr("width",w)
                                   .attr("height",h)
@@ -54,21 +70,31 @@
                     var unitX = x_scale(1) - x_scale(0);
                     var unitY = y_scale(1) - y_scale(0);
                     
-                    d[0] += d3.event.dx / unitX;
-                    d[1] += d3.event.dy / unitY;
-                    
-                    var px = x_scale(d[0]);
-                    var py = y_scale(d[1]);
+                    // map pixel displacement to domain
+                    // and update bound data
 
+                    d[0] += d3.event.dx / unitX; 
+                    d[1] += d3.event.dy / unitY; 
+
+                    var cpFormatter = d3.format(",.1%")(d[0]);
+
+                    outs.coupon.innerHTML = d3.format(",.1%")(d[0]);
+                    outs.par.innerHTML = Math.round(d[1])+"$"; 
+
+                    // recalculate pixel position based on datum 
+                    var px = x_scale(d[0]); 
+                    var py = y_scale(d[1]);
+                    
+                    // and update the position attributes
                         d3.select(this)
                           .attr("cx",px)
                           .attr("cy",py);
                         
-                        var circId = "#a"+d3.select(this).attr("id").substring(1,2);
-                        console.log(circId);
+                        var arcId = "#a"+d3.select(this).attr("id").substring(1,2);
+                        console.log(arcId);
                         setLines(px,py);
 
-                    svg.select(circId).attr("transform","translate(" + px  + "," + py + ")");
+                    svg.select(arcId).attr("transform","translate(" + px  + "," + py + ")");
                 }); 
           
           var dragOuter = d3.drag()
@@ -84,20 +110,24 @@
 
                     var thisArc = d3.select(this);
                         
-                    var circId = "#a"+thisArc.attr("id").substring(1,2);
+                    var circId = "#c"+thisArc.attr("id").substring(1,2);
 
                         console.log(circId);
-
+                        console.log("R = "+d[2]);
                         console.log(delta_r); 
+   
+                    var unit = arc_scale(1)-arc_scale(0); // one unit in the domain corresponds to this in the range 
 
-                    d[2] += delta_r; // is this ok?
-                    d[2] += delta_r; // is this ok?
+                    d[2] += delta_r/unit; // Nb. this does actually modify the datum of the path 
+
+                    if (d[2] > 10) d[2] = 10;
+                    if (d[2] < 3) d[2] = 3; 
+                    
+                    outs.term.innerHTML = Math.round(d[2])+" years";
 
                     var arc = d3.arc()
-                                //.innerRadius(d[2])
-                                //.outerRadius(d[2]+5)
-                                .innerRadius(d[2])              // wonder if this will evaluate correctly
-                                .outerRadius(d[2]+arcStroke)
+                                .innerRadius(arc_scale(d[2]))              // wonder if this will evaluate correctly
+                                .outerRadius(arc_scale(d[2])+arcStroke)
                                 .startAngle(-0.5)
                                 .endAngle(1.7);
 
@@ -124,18 +154,19 @@
                           .endAngle(1.7);
              
                           svg.selectAll("path").data(dataset).enter().append("path")
-                                               .style("fill", "#ff9933")
-                                               .attr("id",(d,i) => "a"+i)
-                                               //.attr("fill-opacity",1)
-                                               .attr("d", arc.innerRadius((d,i) => gap+d[2]).outerRadius((d,i) => d[2]+gap+arcStroke))
-                                               .attr("transform",(d,i) => { return "translate(" + x_scale(d[0])  + "," + y_scale(d[1]) + ")"; } )
-                                               .on("mouseover", function (d,i) {
-                                                        console.log("hovering over arc"); 
-                                                        console.log(d);
-                                                        // some arbitrary change
-                                                        //d3.select(this).attr("d",arc.innerRadius(10));
-                                                })
-                                                .call(dragOuter);
+                                   .style("fill", "#ff9933")
+                                   .attr("id",(d,i) => "a"+i)
+                                   //.attr("fill-opacity",1)
+                                   .attr("d", arc.innerRadius((d,i) => arc_scale(d[2])).outerRadius((d,i) => arc_scale(d[2])+arcStroke))
+                                   .attr("transform",(d,i) => { return "translate(" + x_scale(d[0])  + "," + y_scale(d[1]) + ")"; } )
+                                   .on("mouseover", function (d,i) {
+                                            console.log("hovering over arc"); 
+                                            console.log(d);
+                                            // some arbitrary change
+                                            //d3.select(this).attr("d",arc.innerRadius(10));
+                                    })
+                                    .call(dragOuter);
+
         }
         
         outerCircles();
