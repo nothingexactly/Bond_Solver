@@ -87,6 +87,11 @@ Duration.prototype.newtonSolve = function (maxIter) {
 Duration.prototype.macaulayDuration = function () {
             // where most likely we use i == ytm, pv == bond_price
             var sum = this.m * this.n / Math.pow(1 + this.ytm, this.n);    
+            
+            // checking against http://www.mrzeno.com/Bond-Macaulay-Duration-Convexity.php
+            // mrzeno.com doesn't include the final maturity value, to which sum is initialized
+            // here, in the summation
+
             for (var k = 1 ; k <= this.n ; k++) {
                 sum += this.c * k / Math.pow(1 + this.ytm, k);
             }

@@ -15,7 +15,9 @@ function Dual(a, b) {
 }
 
 function AutoDiff() {
+
     console.log("Construct a new AutoDiff object");
+
 	this.pow = function(f,g) {
 		return Dual(Math.pow(f.a,g.a),Math.pow(f.a,g.a)*(f.b*g.a/f.a+g.b*Math.log(f.a)));
 	}	

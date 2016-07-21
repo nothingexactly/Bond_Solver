@@ -16,10 +16,14 @@
                               100); // par_value
 
        var durations = []; 
+       var colours = [];
+       var no_bonds = 7;
 
-       for (var i = 0 ; i < 4; i++) {
-         dataset.push([1+Math.random()*9,85+30*Math.random(),0.02]);
+       for (var i = 0 ; i < no_bonds; i++) {
+                      // term to maturity, coupon, price
+         dataset.push([1+Math.random()*9,0.02,85+30*Math.random()]);
          durations.push(0);
+         colours.push(d3.hsl(350*i/no_bonds,0.5,0.5));
        }
        
        // draw space parameters 
@@ -38,25 +42,26 @@
        // Bar chart parameters
        var bc_width = w;
        var bc_height = 100;
-       var bar_width = 10;
+       var bar_width = 0.9*bc_height/(dataset.length+1);
        
        // Scales
 
-       var x_scale = d3.scaleLinear().domain([0,10])
-                                     .range([pad,w-pad]); // Time until maturity (years)
+       var x_scale = d3.scaleLinear().domain([0,10])       // Time until maturity (years)
+                                     .range([pad,w-pad]); 
+        
+       var y_scale = d3.scaleLinear().domain([0,0.2])      // Coupon rate 
+                                     .range([h-pad,pad]); 
 
-       var y_scale = d3.scaleLinear().domain([85,115])
-                                     .range([h-pad,pad]); // Price 
+       var arc_scale = d3.scaleLinear().domain([85,115])   // Price 
+                                       .range([20,50]);          
 
-       var arc_scale = d3.scaleLinear().domain([0,0.2])
-                                       .range([20,50]);   // Coupon rate
-       
-       var bar_scale = d3.scaleLinear().domain([0,10])
-                                       .range([0,bc_width]); // Modified Duration (%)
+       var bar_scale = d3.scaleLinear().domain([0,10])     // Modified Duration (%)
+                                       .range([0,bc_width]); 
 
        // Chart and data
        var bg = d3.rgb(219,247,255);
- 
+           bg = "white"; 
+
        var svg = d3.select("#ui").append("svg")
                                  .attr("id", "chart")
                                  .attr("width",w)
@@ -72,12 +77,13 @@
                                             .attr("id","chart")
                                             .attr("width",w)
                                             .attr("height",100)     
-                                            .style("background-color","#ffe6ff");
+                                            .style("background-color",/* "#ffe6ff" */ "white");
 
            sensitivities.selectAll(".bar")
                   .data(durations)
                 .enter().append("rect")
                   .attr("class", "bar")
+                  .style("fill",(d,i) => colours[i])
                   .attr("x",(d,i) => { return -0.5*(bar_width+bc_height) + (i+1)*100/(durations.length+1); })
                   .attr("y","0")
                   .attr("width",bar_width)
@@ -141,18 +147,22 @@
        var dragInner = d3.drag()
                 .on("drag", function(d,i) {
                     var unitX = x_scale(1) - x_scale(0);
-                    var unitY = y_scale(1) - y_scale(0);
-                    
+                    var unitY = -(h-2*pad)/0.2; 
+
                     // map pixel displacement to domain
                     // and update bound data
 
                     d[0] += d3.event.dx / unitX; 
                     d[1] += d3.event.dy / unitY; 
 
-                    var cpFormatter = d3.format(",.1%")(d[0]);
+                    if (d[0] > 10) d[0] = 10;
+                    if (d[0] < 0) d[0] = 0;
 
+                    if (d[1] > 0.2) d[1] = 0.2;
+                    if (d[1] < 0) d[1] = 0; 
+                    
                     outs.term.innerHTML = d[0];
-                    outs.price.innerHTML = Math.round(d[1])+"$"; 
+                    outs.coupon.innerHTML = d[1]; 
 
                     // recalculate pixel position based on datum 
                     var px = x_scale(d[0]); 
@@ -178,12 +188,14 @@
        
                     // update duration object
                     // check if parameters are valid
-                    if (!recalculate(d[1],100,linkedArc.datum()[2],d[0],arcId)) {
+                    // function recalculate(price,par,coupon_rate,time,bondId) {
+                    
+                    if (!recalculate(linkedArc.datum()[2],100,d[1],d[0],arcId)) {
                        currentPoint.attr("fill",errorFill); 
                        linkedArc.style("fill",errorFill);
                     } else {
                        currentPoint.attr("fill",pointFill); 
-                       linkedArc.style("fill",arcFill);
+                       linkedArc.style("fill",colours[i]);
                     }
 
                 }); 
@@ -205,14 +217,14 @@
                         
                     var circId = "#c"+thisArc.attr("id").substring(1,2);
 
-                    var unit = 150;// one unit in the domain corresponds to this in the range 
+                    var unit = arc_scale(1)-arc_scale(0); // one unit in the domain corresponds to this in the range 
 
                     d[2] += delta_r/unit; // Nb. this does actually modify the datum of the path 
 
-                    if (d[2] > 0.2) d[2] = 0.2;
-                    if (d[2] < 0) d[2] = 0; 
+                    if (d[2] > 115) d[2] = 115;
+                    if (d[2] < 85) d[2] = 85; 
                     
-                    outs.coupon.innerHTML = d[2];
+                    outs.price.innerHTML = d[2];
 
                     var arc = d3.arc()
                                 .innerRadius(arc_scale(d[2]))              // wonder if this will evaluate correctly
@@ -224,13 +236,12 @@
                     
                     var linkedPoint = svg.select(circId);
 
-       // recalculate(price,par,coupon_rate,time) 
-                    if (!recalculate(linkedPoint.datum()[1],100,d[2],linkedPoint.datum()[0],circId)) {
+                    if (!recalculate(d[2],100,linkedPoint.datum()[1],linkedPoint.datum()[0],circId)) {
                        linkedPoint.attr("fill",errorFill); 
                        thisArc.style("fill",errorFill);
                     } else {
                        linkedPoint.attr("fill",pointFill); 
-                       thisArc.style("fill",arcFill);
+                       thisArc.style("fill",colours[i]);
                     }
          });
 
@@ -245,7 +256,7 @@
                                   .enter()
                                   .append("circle")
                                   .attr("id",(d,i) => "c"+i)
-                                  .attr("fill","black")
+                                  .attr("fill","grey")
                                   .attr("cx",d => x_scale(d[0]))
                                   .attr("cy",d => y_scale(d[1]))
                                   .attr("r",5)                  
@@ -259,7 +270,7 @@
                           .endAngle(1.7);
              
                   svg.selectAll("path").data(dataset).enter().append("path")
-                           .style("fill",arcFill)
+                           .style("fill",(d,i) => colours[i])
                            .attr("id",(d,i) => "a"+i)
                            .attr("d", arc.innerRadius((d,i) => arc_scale(d[2])).outerRadius((d,i) => arc_scale(d[2])+arcStroke))
                            .attr("transform",(d,i) => { return "translate(" + x_scale(d[0])  + "," + y_scale(d[1]) + ")"; } )
@@ -287,6 +298,10 @@
 
         var xAxis = d3.axisBottom(x_scale).ticks(5);
         var yAxis = d3.axisLeft(y_scale).ticks(5);
+        var ss = d3.scaleOrdinal().domain(dataset.map((d,i) => i+1))       // Time until maturity (years)
+                                  .range(dataset.map((d,i) => (i+1)*bc_height/(dataset.length+1)));
+
+        var barAxis = d3.axisLeft(ss); 
 
             svg.append("g")
                .attr("class","xaxis axis")                     // to help with styling 
@@ -302,14 +317,36 @@
                .attr("transform", function(d) {
                return "translate(" + this.getBBox().height*-2 + "," + this.getBBox().height + ")rotate(-45)";
             });
-    
+
+
+            sensitivities.append("g")
+                         .attr("class","yaxis axis")
+                         .attr("transform","translate("+pad+",0)")
+                         .call(barAxis);
+
+
+/*
+        var yBar = d3.scale.ordinal()
+                         .rangeRoundBands([pad, pad+bc_width], .1);
+
+        var yAxisBar = d3.svg.axis()
+                         .scale(yBar)
+                         .orient("left");
+
+
+            svg.append("g")
+              .attr("class", "y axis")
+              .attr("transform", "rotate(-90)")
+              .call(yAxisBar);
+*/        
+
          // Axis Titles 
 
             svg.append("text")
                 .attr("text-anchor", "middle")  // easy to centre text as transform applied to anchor
                 .attr("transform", "translate("+ (pad/3) +","+(h/2)+")rotate(-90)")  
                 .attr("class","axis")
-                .text("Price");
+                .text("Coupon Rate");
 
             svg.append("text")
                 .attr("text-anchor", "middle")  
