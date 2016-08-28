@@ -5,10 +5,12 @@
        outs.price = document.getElementById("price");
        outs.coupon = document.getElementById("coupon");
        outs.term = document.getElementById("term");
+       outs.duration = document.getElementById("duration");
        
        outs.price.innerHTML = "I am the price";
        outs.coupon.innerHTML = "I am coupon rate";
        outs.term.innerHTML = "I am term to maturity";
+       outs.duration.innerHTML = "Modified Duration";
 
        var dur = new Duration(110,  // price
                               5,    // coupon value
@@ -25,7 +27,7 @@
          durations.push(0);
          colours.push(d3.hsl(350*i/no_bonds,0.5,0.5));
        }
-       
+
        // draw space parameters 
        var h = 400;
        var w = 600; 
@@ -39,10 +41,12 @@
        var errorFill = "red"; 
        var pointFill = "grey";
 
-       // Bar chart parameters
+       // Modified Duration Bar chart parameters
        var bc_width = w;
-       var bc_height = 100;
-       var bar_width = 0.9*bc_height/(dataset.length+1);
+       var bc_height = 150;
+       var bc_vert_gap = 50;
+       
+       var bar_width = (bc_height-bc_vert_gap)/dataset.length;
        
        // Scales
 
@@ -56,7 +60,7 @@
                                        .range([20,50]);          
 
        var bar_scale = d3.scaleLinear().domain([0,10])     // Modified Duration (%)
-                                       .range([0,bc_width]); 
+                                       .range([0,bc_width-2*pad]); 
 
        // Chart and data
        var bg = d3.rgb(219,247,255);
@@ -76,28 +80,32 @@
        var sensitivities = d3.select("#mod_dur").append("svg")
                                             .attr("id","chart")
                                             .attr("width",w)
-                                            .attr("height",100)     
+                                            .attr("height",bc_height)     
                                             .style("background-color",/* "#ffe6ff" */ "white");
-
+                 
+       function updateBars() {
            sensitivities.selectAll(".bar")
+                  .data(durations)
+                  .attr("width",(d,i) => { return bar_scale(d) })
+                  .attr("height",bar_width);
+       }
+
+          sensitivities.selectAll(".bar")
                   .data(durations)
                 .enter().append("rect")
                   .attr("class", "bar")
                   .style("fill",(d,i) => colours[i])
-                  .attr("x",(d,i) => { return -0.5*(bar_width+bc_height) + (i+1)*100/(durations.length+1); })
-                  .attr("y","0")
-                  .attr("width",bar_width)
-                  .attr("height",d => bar_scale(d))
-                  .attr("transform","translate("+0+","+(bc_height/2)+")rotate(-90)");
-/* 
-       var bc_width = w;
-       var bc_height = 100;
-       var bar_width = 10;
-*/ 
-  /*
-   *   Functions to be called on user input
-   *
-   */
+                  .attr("x","0")
+                  .attr("y",(d,i) => { return i*bar_width; })
+                  .attr("transform","translate("+pad+","+0+")rotate(0)");
+
+       for (var i = 0 ; i < dataset.length ; i++) {
+            recalculate(dataset[i][2],100,dataset[i][1],dataset[i][0],"b"+i);
+       }
+
+       updateBars();
+
+       // Functions to be called on user input
        
        // set the cross-hairs when a point is dragged
        
@@ -130,13 +138,9 @@
                 var id = parseInt(bondId.substr(2));
 
                 durations[id] = dur.modifiedDuration(); 
-                console.log("price "+price);
-                console.log("duration "+durations[id]); 
-
-                sensitivities.selectAll("rect")
-                  .data(durations)
-                  .attr("height",d => bar_scale(d))
-                  .attr("transform","translate("+pad+","+(bc_height/2)+")rotate(-90)");
+                outs.duration.innerHTML = "Duration "+durations[id].toFixed(2)+"%";
+                //console.log("price "+price);
+                //console.log("duration "+durations[id]); 
 
                 return true;
            } 
@@ -161,8 +165,8 @@
                     if (d[1] > 0.2) d[1] = 0.2;
                     if (d[1] < 0) d[1] = 0; 
                     
-                    outs.term.innerHTML = d[0];
-                    outs.coupon.innerHTML = d[1]; 
+                    outs.term.innerHTML = "Years: "+d[0].toFixed(2);
+                    outs.coupon.innerHTML = "Coupon: "+d[1].toFixed(3); 
 
                     // recalculate pixel position based on datum 
                     var px = x_scale(d[0]); 
@@ -196,6 +200,7 @@
                     } else {
                        currentPoint.attr("fill",pointFill); 
                        linkedArc.style("fill",colours[i]);
+                       updateBars();
                     }
 
                 }); 
@@ -224,7 +229,7 @@
                     if (d[2] > 115) d[2] = 115;
                     if (d[2] < 85) d[2] = 85; 
                     
-                    outs.price.innerHTML = d[2];
+                    outs.price.innerHTML = "Price "+d[2].toFixed(2);
 
                     var arc = d3.arc()
                                 .innerRadius(arc_scale(d[2]))              // wonder if this will evaluate correctly
@@ -242,6 +247,7 @@
                     } else {
                        linkedPoint.attr("fill",pointFill); 
                        thisArc.style("fill",colours[i]);
+                       updateBars();
                     }
          });
 
@@ -298,10 +304,10 @@
 
         var xAxis = d3.axisBottom(x_scale).ticks(5);
         var yAxis = d3.axisLeft(y_scale).ticks(5);
-        var ss = d3.scaleOrdinal().domain(dataset.map((d,i) => i+1))       // Time until maturity (years)
-                                  .range(dataset.map((d,i) => (i+1)*bc_height/(dataset.length+1)));
+        var barLabels = d3.scaleOrdinal().domain(dataset.map((d,i) => i+1))       
+                                  .range(dataset.map((d,i) => i*bar_width+bar_width/2));
 
-        var barAxis = d3.axisLeft(ss); 
+        var barAxis = d3.axisLeft(barLabels); 
 
             svg.append("g")
                .attr("class","xaxis axis")                     // to help with styling 
@@ -324,21 +330,18 @@
                          .attr("transform","translate("+pad+",0)")
                          .call(barAxis);
 
+        var sensAxis = d3.axisBottom(bar_scale).ticks(5);
+            
+            sensitivities.append("g")
+                         .attr("class","saxis axis")
+                         .attr("transform","translate("+pad+","+bar_width*dataset.length+")")
+                         .call(sensAxis);
 
-/*
-        var yBar = d3.scale.ordinal()
-                         .rangeRoundBands([pad, pad+bc_width], .1);
-
-        var yAxisBar = d3.svg.axis()
-                         .scale(yBar)
-                         .orient("left");
-
-
-            svg.append("g")
-              .attr("class", "y axis")
-              .attr("transform", "rotate(-90)")
-              .call(yAxisBar);
-*/        
+            sensitivities.append("text")
+                .attr("text-anchor", "middle")  // easy to centre text as transform applied to anchor
+                .attr("transform", "translate("+ (bc_width/2) +","+(140)+")rotate(0)")  
+                .attr("class","axis")
+                .text("Modified Duration (%)");
 
          // Axis Titles 
 
