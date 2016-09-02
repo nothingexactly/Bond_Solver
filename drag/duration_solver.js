@@ -7,7 +7,7 @@
 
 function Duration(price,coupon_value,years_to_maturity,par_value) {
        this.c = coupon_value; 
-       this.n = years_to_maturity;
+       this.n = Math.round(years_to_maturity); // must be discrete for this model
        this.m = par_value;
        this.pv = price;         // pv for Present Value
 
