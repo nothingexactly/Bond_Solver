@@ -1,4 +1,4 @@
-       var dataset = [];
+       var bonds = []; // just for initializing the bonds
        var outs = {};
        
        // HTML Output- mainly for debugging
@@ -20,13 +20,17 @@
                               10,   // term to maturity
                               100); // par_value
 
-       var durations = []; 
+       var durations = [];  // the durations are treated as separate from the bonds 
+                            // This is because the bonds array is just for initialization
+                            // Thereafter, each bond's data is split between an svg arc
+                            // and an svg circle
+                            
        var colours = [];
        var no_bonds = 7;    // number of bonds
        
        // Initialize the Bonds
        for (var i = 0 ; i < no_bonds; i++) {
-         dataset.push({term: 1+Math.random()*9, coupon: (i+1)*0.9*0.2/no_bonds, price: 85+30*Math.random()});
+         bonds.push({term: 1+Math.random()*9, coupon: (i+1)*0.9*0.2/no_bonds, price: 85+30*Math.random()});
          durations.push(5);
          colours.push(d3.hsl(350*i/no_bonds,0.5,0.5));
        }
@@ -48,7 +52,7 @@
        var bc_width = w;
        var bc_height = 150;
        var bc_vert_gap = 50;
-       var bar_width = (bc_height-bc_vert_gap)/dataset.length;
+       var bar_width = (bc_height-bc_vert_gap)/bonds.length;
        
        // Scales
 
@@ -94,8 +98,8 @@
                   .attr("height",bar_width);
        }
 
-       for (var i = 0 ; i < dataset.length ; i++) {
-            recalculate(dataset[i].price,100,dataset[i].coupon,dataset[i].term,"#b"+i);
+       for (var i = 0 ; i < bonds.length ; i++) {
+            recalculate(bonds[i].price,100,bonds[i].coupon,bonds[i].term,"#b"+i);
        }
 
        // Initialize Duration Bars
@@ -149,8 +153,12 @@
            } 
        }
 
-       // drag behaviour for the points 
+       /* 
+        * Drag Behaviours
+        */ 
        
+       // utility functions
+
        function constrain(x,lower,upper) {
             if (x > upper) {
                 return upper;
@@ -161,11 +169,21 @@
             }
        }
 
+       var set_colours = function() { svg.selectAll("path").data(bonds).style("fill",(d,i) => colours[i]); };
+       var fade_colours = function() {
+                            var arcId = parseInt(d3.select(this).attr("id").substring(1,2));
+                            svg.selectAll("path").data(bonds).style("fill",(d,i) => i != arcId ? "grey" : colours[i] );
+                          }
+       
+ 
+       // dragging
+
        var dragInner = d3.drag()
+                .on("start",fade_colours)
                 .on("drag", function(d,i) {
                     var unitX = x_scale(1) - x_scale(0);
                     var unitY = -(h-2*pad)/0.2; 
-
+                    
                     // map pixel displacement to domain
                     // and update bound data 
                     // (this isn't using D3's paradigm effectively)
@@ -214,13 +232,12 @@
                        updateBars();
                     }
 
-                }); 
+                }).on("end",set_colours); 
           
           // Drag behaviour for the arcs
           // The radius determines the Price of the Bond
           var dragOuter = d3.drag()
                 .on("drag",function(d,i) {
-                    
                     // may need some logic here to map r to the correct range 
                     var rx = d3.event.dx;
                     var ry = d3.event.dy;
@@ -262,8 +279,9 @@
                        thisArc.style("fill",colours[i]);
                        updateBars();
                     }
-         });
+                }).on("end",set_colours);
 
+      
   /*
    *   Initialization and binding of data to SVGs 
    *
@@ -271,7 +289,7 @@
 
        // Points
        
-       var innerCircles = svg.selectAll("circle").data(dataset)
+       var innerCircles = svg.selectAll("circle").data(bonds)
                                   .enter()
                                   .append("circle")
                                   .attr("id",(d,i) => "c"+i)
@@ -288,7 +306,7 @@
                           .startAngle(-0.5)
                           .endAngle(1.7);
              
-                  svg.selectAll("path").data(dataset).enter().append("path")
+                  svg.selectAll("path").data(bonds).enter().append("path")
                            .style("fill",(d,i) => colours[i])
                            .attr("id",(d,i) => "a"+i)
                            .attr("d", arc.innerRadius((d,i) => arc_scale(d.price)).outerRadius((d,i) => arc_scale(d.price)+arcStroke))
@@ -300,7 +318,7 @@
 
         updateBars();
 /*
-              svg.selectAll("text").data(dataset)
+              svg.selectAll("text").data(bonds)
                                 .enter()
                                 .append("text")
                                 .text(d => Math.round(d[0])+","+Math.round(d[1]))
@@ -323,8 +341,8 @@
 
         var xAxis = d3.axisBottom(x_scale).ticks(5);
         var yAxis = d3.axisLeft(y_scale).ticks(5);
-        var barLabels = d3.scaleOrdinal().domain(dataset.map((d,i) => i+1))       
-                                  .range(dataset.map((d,i) => i*bar_width+bar_width/2));
+        var barLabels = d3.scaleOrdinal().domain(bonds.map((d,i) => i+1))       
+                                  .range(bonds.map((d,i) => i*bar_width+bar_width/2));
 
         var barAxis = d3.axisLeft(barLabels); 
 
@@ -353,7 +371,7 @@
             
             sensitivities.append("g")
                          .attr("class","saxis axis")
-                         .attr("transform","translate("+pad+","+bar_width*dataset.length+")")
+                         .attr("transform","translate("+pad+","+bar_width*bonds.length+")")
                          .call(sensAxis);
 
             sensitivities.append("text")
