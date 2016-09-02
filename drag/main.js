@@ -23,36 +23,36 @@
        var durations = []; 
        var colours = [];
        var no_bonds = 7;    // number of bonds
-
+       
+       // Initialize the Bonds
        for (var i = 0 ; i < no_bonds; i++) {
-         dataset.push({term: 1+Math.random()*9, coupon: 0.02, price: 85+30*Math.random()});
-         durations.push(0);
+         dataset.push({term: 1+Math.random()*9, coupon: (i+1)*0.9*0.2/no_bonds, price: 85+30*Math.random()});
+         durations.push(5);
          colours.push(d3.hsl(350*i/no_bonds,0.5,0.5));
        }
 
-       // draw space parameters 
+       // UI Canvas parameters 
        var h = 400;
        var w = 600; 
        var pad = 70;
 
-       // SVG parameters
+       // Draggable Shape parameters 
        var arcStroke = 10;
        var gap = 15;
-       
+      
        var arcFill = "#ff9933";
        var errorFill = "red"; 
        var pointFill = "grey";
 
-       // Modified Duration Bar chart display parameters
+       // Duration Horizontal Bar Chart parameters
        var bc_width = w;
        var bc_height = 150;
        var bc_vert_gap = 50;
-       
        var bar_width = (bc_height-bc_vert_gap)/dataset.length;
        
        // Scales
 
-       var x_scale = d3.scaleLinear().domain([0,10])       // Time until maturity (years)
+       var x_scale = d3.scaleLinear().domain([0,10])       // Remaining Time to maturity (years)
                                      .range([pad,w-pad]); 
         
        var y_scale = d3.scaleLinear().domain([0,0.2])      // Coupon rate 
@@ -73,13 +73,14 @@
                                  .attr("width",w)
                                  .attr("height",h)
                                  .style("background-color",bg);
-
+           
+           // Cross hairs (helpful for reading values off axes)
            svg.append("line").attr("id","touchY");
            svg.append("line").attr("id","touchX");
            
            svg.selectAll("line").style("stroke","black").attr("class","axis_readoff");
 
-       // modified durations
+       // Durations Bar Chart
        var sensitivities = d3.select("#mod_dur").append("svg")
                                             .attr("id","chart")
                                             .attr("width",w)
@@ -92,9 +93,12 @@
                   .attr("width",(d,i) => { return bar_scale(d) })
                   .attr("height",bar_width);
        }
-       
-       // initialize modified durations
-       
+
+       for (var i = 0 ; i < dataset.length ; i++) {
+            recalculate(dataset[i].price,100,dataset[i].coupon,dataset[i].term,"#b"+i);
+       }
+
+       // Initialize Duration Bars
           sensitivities.selectAll(".bar")
                   .data(durations)
                 .enter().append("rect")
@@ -103,15 +107,8 @@
                   .attr("x","0")
                   .attr("y",(d,i) => { return i*bar_width; })
                   .attr("transform","translate("+pad+","+0+")rotate(0)");
-/*
-       for (var i = 0 ; i < dataset.length ; i++) {
-            recalculate(dataset[i][2],100,dataset[i][1],dataset[i][0],"b"+i);
-       }
-
-       updateBars();
-*/
-
-       // Functions to be called on user input
+       
+       // Functions triggered by user interaction 
        
        // set the cross-hairs when a point is dragged
        
@@ -141,18 +138,28 @@
                 
                 dur.newtonSolve(10);
                 dur.macaulayDuration();
+
                 var id = parseInt(bondId.substr(2));
 
-                durations[id] = dur.modifiedDuration(); 
+                durations[id] = dur.modifiedDuration(); // this is a side effect
+                console.log(id);
+                console.log(durations);
                 outs.duration.innerHTML = "Duration "+durations[id].toFixed(2)+"%";
-                //console.log("price "+price);
-                //console.log("duration "+durations[id]); 
-
-                return true;
+                    return true;
            } 
        }
 
        // drag behaviour for the points 
+       
+       function constrain(x,lower,upper) {
+            if (x > upper) {
+                return upper;
+            } else if (x < lower) {
+                return lower;
+            } else {
+                return x;
+            }
+       }
 
        var dragInner = d3.drag()
                 .on("drag", function(d,i) {
@@ -160,17 +167,16 @@
                     var unitY = -(h-2*pad)/0.2; 
 
                     // map pixel displacement to domain
-                    // and update bound data
+                    // and update bound data 
+                    // (this isn't using D3's paradigm effectively)
 
                     d.term += d3.event.dx / unitX; 
                     d.coupon += d3.event.dy / unitY; 
 
-                    if (d.term > 10) d.term = 10;
-                    if (d.term < 0) d.term = 0;
+                    // constrain to draw space
+                    d.term = constrain(d.term,0,10)
+                    d.coupon = constrain(d.coupon,0,0.2)
 
-                    if (d.coupon > 0.2) d.coupon = 0.2;
-                    if (d.coupon < 0) d.coupon = 0; 
-                    
                     outs.term.innerHTML = "Years: "+d.term.toFixed(2);
                     outs.coupon.innerHTML = "Coupon: "+d.coupon.toFixed(3); 
 
@@ -211,7 +217,7 @@
                 }); 
           
           // Drag behaviour for the arcs
-
+          // The radius determines the Price of the Bond
           var dragOuter = d3.drag()
                 .on("drag",function(d,i) {
                     
@@ -225,19 +231,21 @@
 
                     var thisArc = d3.select(this);
                         
+                    // find the corresponding circle for this arc to 
+                    // get the data required to update the duration 
+
                     var circId = "#c"+thisArc.attr("id").substring(1,2);
 
                     var unit = arc_scale(1)-arc_scale(0); // one unit in the domain corresponds to this in the range 
 
-                    d.price += delta_r/unit; // Nb. this does actually modify the datum of the path 
+                    d.price += delta_r/unit; // Nb. this modifies the datum of the arc path 
 
-                    if (d[2] > 115) d.price = 115;
-                    if (d[2] < 85) d.price = 85; 
-                    
+                    d.price = constrain(d.price,85,115)
+
                     outs.price.innerHTML = "Price "+d.price.toFixed(2);
 
                     var arc = d3.arc()
-                                .innerRadius(arc_scale(d.price))              // wonder if this will evaluate correctly
+                                .innerRadius(arc_scale(d.price))              
                                 .outerRadius(arc_scale(d.price)+arcStroke)
                                 .startAngle(-0.5)
                                 .endAngle(1.7);
@@ -289,6 +297,8 @@
         }
         
         outerCircles();
+
+        updateBars();
 /*
               svg.selectAll("text").data(dataset)
                                 .enter()
@@ -301,8 +311,12 @@
                                 .attr("fill", "steelblue");
 */
 
-        // Axes
-        
+
+  /*
+   *  Axes 
+   *
+   */
+
         // could use tickFormat() 
         
         // this is version 4 syntax
