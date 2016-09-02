@@ -30,7 +30,7 @@
        
        // Initialize the Bonds
        for (var i = 0 ; i < no_bonds; i++) {
-         bonds.push({term: 1+Math.random()*9, coupon: (i+1)*0.9*0.2/no_bonds, price: 85+30*Math.random()});
+         bonds.push({term: 10*(1+i)/no_bonds, coupon: 1.3*(1-Math.pow(0.9,i+1))*0.2, price: 115-30*((i+1)/no_bonds)});
          durations.push(5);
          colours.push(d3.hsl(350*i/no_bonds,0.5,0.5));
        }
@@ -156,7 +156,7 @@
                 var id = parseInt(bondId.substr(2));
 
                 durations[id] = dur.modifiedDuration(); // this is a side effect
-                outs.duration.innerHTML = "Duration "+durations[id].toFixed(2)+"%";
+                //outs.duration.innerHTML = "Duration "+durations[id].toFixed(2)+"%";
                     return true;
            } 
        }
@@ -201,8 +201,8 @@
                     d.term = constrain(d.term,0,10);
                     d.coupon = constrain(d.coupon,0,0.2);
 
-                    outs.term.innerHTML = "Years: "+d.term.toFixed(2);
-                    outs.coupon.innerHTML = "Coupon: "+d.coupon.toFixed(3); 
+                    //outs.term.innerHTML = "Years: "+d.term.toFixed(2);
+                    //outs.coupon.innerHTML = "Coupon: "+d.coupon.toFixed(3); 
 
                     // recalculate pixel position based on datum 
                     var px = x_scale(d.term); 
@@ -277,7 +277,7 @@
 
                     d.price = constrain(d.price,85,115)
 
-                    outs.price.innerHTML = "Price "+d.price.toFixed(2);
+                    //outs.price.innerHTML = "Price "+d.price.toFixed(2);
 
                     var arc = d3.arc()
                                 .innerRadius(arc_scale(d.price))              
@@ -293,7 +293,7 @@
                     var centreX = parseInt(thisArc.attr("transform").substring(10,17));
                     var centreY = parseInt(thisArc.attr("transform").split(",")[1].substr(0,4)); 
                         
-                    // check if parameters are valid
+                    // Check if parameters are valid
                     
                     // if valid, annotate with: 
                     var s = "Price: $"+Math.round(d.price)+"/";
