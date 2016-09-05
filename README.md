@@ -10,7 +10,9 @@ Finding the Yield to Maturity, which leads to the calculation of Duration, requi
 
 ## Instructions
 
-Drag behaviours:
+Each point-arc represents a bond where the radius of the arc is the *price* of the bond, and the xy-position of the bond its *Term to Maturity* and *Coupon Rate*
+
+**Drag behaviours:i**
 
 <img src="./drag_behaviours.png" alt="ellipsoid" width="300px"/>
 
