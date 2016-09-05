@@ -1,5 +1,7 @@
 ## Synopsis
 
+[Try it out here](https://cbrookhouse8.github.io/Bonds_Auto_Differentiation/)
+
 This program calculates how sensitive the price of a given bonds is to changes in interest rates.
 
 It also provides a user interface through which you can compare bonds of varying price, term to maturity, and coupon rate. 
