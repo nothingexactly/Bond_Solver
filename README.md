@@ -12,7 +12,7 @@ Finding the Yield to Maturity, which leads to the calculation of Duration, requi
 
 Drag behaviours:
 
-<img src="./drag_behaviours.png" alt="ellipsoid" width="500px"/>
+<img src="./drag_behaviours.png" alt="ellipsoid" width="300px"/>
 
 ## Motivation
 
