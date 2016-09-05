@@ -1,16 +1,28 @@
 ## Synopsis
 
-This program works out the Macaulay Duration and Modified duration for a bond of price $100, and remaining parameters specified by user input. 
+This program calculates how sensitive the price of a given bonds is to changes in interest rates.
+
+It also provides a user interface through which you can compare bonds of varying price, term to maturity, and coupon rate. 
+
+The aim of this program is to provide an intuition for how risky a bond might be based on the aforementioned parameters.
 
 Finding the Yield to Maturity, which leads to the calculation of Duration, requires a solver. This program implements a Newton-Raphson gradient descent method where first derivatives are calculated using a simple implementation of automatic differentiation.
 
+## Instructions
+
+Drag behaviours:
+
+<img src="./drag_behaviours.png" alt="ellipsoid" width="500px"/>
+
 ## Motivation
 
-* To learn about Automatic Differentiation
-* To learn some d3.js for interactive visualisation
-* To use Automatic Differentiation instead of the secant method for Newton-Raphson 
+* To use visualisation to communicate useful technical ideas to a lay audience
+* To implement the Newton-Raphson Gradient Descent using Automatic Differentiation
+* To become familiar with d3's data-binding paradigm: its limitations and possibilities
 
-## Thoughts
+## Reflections
+
+The Horizontal axis is really discrete. However, this user interface fails to convey this adequately. The program can only work with whole number values for the term to maturity.
 
 The UI is built using d3.js. And the code possibly reveals where d3's data binding paradigm is not so well suited to UI design as it is to data visualisation.
 
