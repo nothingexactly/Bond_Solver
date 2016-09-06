@@ -381,7 +381,7 @@ var sensAxis = d3.axisBottom(bar_scale).ticks(5);
 sensitivities.append("g").attr("class", "saxis axis").attr("transform", "translate(" + pad + "," + bar_width * bonds.length + ")").call(sensAxis);
 
 sensitivities.append("text").attr("text-anchor", "middle") // easy to centre text as transform applied to anchor
-.attr("transform", "translate(" + bc_width / 2 + "," + 140 + ")rotate(0)").attr("class", "axis").text("Modified Duration (%)");
+.attr("transform", "translate(" + bc_width / 2 + "," + 140 + ")rotate(0)").attr("class", "axis").text("Modified Duration");
 
 // Axis Titles 
 
