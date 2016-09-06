@@ -1,436 +1,392 @@
-       var bonds = []; // just for initializing the bonds
-       var outs = {};
-       
-       // HTML Output- mainly for debugging
-       outs.price = document.getElementById("price");
-       outs.coupon = document.getElementById("coupon");
-       outs.term = document.getElementById("term");
-       outs.duration = document.getElementById("duration");
-       
-       //outs.price.innerHTML = "I am the price";
-       //outs.coupon.innerHTML = "I am coupon rate";
-       //outs.term.innerHTML = "I am term to maturity";
-       //outs.duration.innerHTML = "Modified Duration";
-       
-       // A single new duration object that will be
-       // used to calculate the modified duration for
-       // all of the bonds.
-       var dur = new Duration(110,  // price
-                              5,    // coupon value
-                              10,   // term to maturity
-                              100); // par_value
+"use strict";
 
-       var durations = [];  // the durations are treated as separate from the bonds 
-                            // This is because the bonds array is just for initialization
-                            // Thereafter, each bond's data is split between an svg arc
-                            // and an svg circle
-                            
-       var colours = [];
-       var no_bonds = 7;    // number of bonds
-       
-       // Initialize the Bonds
-       for (var i = 0 ; i < no_bonds; i++) {
-         bonds.push({term: 10*(1+i)/no_bonds, coupon: 1.3*(1-Math.pow(0.9,i+1))*0.2, price: 115-30*((i+1)/no_bonds)});
-         durations.push(5);
-         colours.push(d3.hsl(350*i/no_bonds,0.5,0.5));
-       }
+var bonds = []; // just for initializing the bonds
+var outs = {};
 
-       // Initialize Durations
-       for (var i = 0 ; i < bonds.length ; i++) {
-            recalculate(bonds[i].price,100,bonds[i].coupon,bonds[i].term,"#b"+i);
-       }
-       
-       function updateBars() {
-           sensitivities.selectAll(".bar")
-                  .data(durations)
-                  .attr("width",(d,i) => { return bar_scale(d) })
-                  .attr("height",bar_width);
-       }
+// HTML Output- mainly for debugging
+outs.price = document.getElementById("price");
+outs.coupon = document.getElementById("coupon");
+outs.term = document.getElementById("term");
+outs.duration = document.getElementById("duration");
 
-       // UI Canvas parameters 
-       var h = 400;
-       var w = 600; 
-       var pad = 70;
+//outs.price.innerHTML = "I am the price";
+//outs.coupon.innerHTML = "I am coupon rate";
+//outs.term.innerHTML = "I am term to maturity";
+//outs.duration.innerHTML = "Modified Duration";
 
-       // Draggable Shape parameters 
-       var arcStroke = 10;
-       var gap = 15;
-      
-       var arcFill = "#ff9933";
-       var errorFill = "red"; 
-       var pointFill = "grey";
+// A single new duration object that will be
+// used to calculate the modified duration for
+// all of the bonds.
+var dur = new Duration(110, // price
+5, // coupon value
+10, // term to maturity
+100); // par_value
 
-       // Duration Horizontal Bar Chart parameters
-       var bc_width = w;
-       var bc_height = 150;
-       var bc_vert_gap = 50;
-       var bar_width = (bc_height-bc_vert_gap)/bonds.length;
-       
-       // Scales
+var durations = []; // the durations are treated as separate from the bonds 
+// This is because the bonds array is just for initialization
+// Thereafter, each bond's data is split between an svg arc
+// and an svg circle
 
-       var x_scale = d3.scaleLinear().domain([0,10])       // Remaining Time to maturity (years)
-                                     .range([pad,w-pad]); 
-        
-       var y_scale = d3.scaleLinear().domain([0,0.2])      // Coupon rate 
-                                     .range([h-pad,pad]); 
+var colours = [];
+var no_bonds = 7; // number of bonds
 
-       var arc_scale = d3.scaleLinear().domain([85,115])   // Price 
-                                       .range([20,50]);          
+// Initialize the Bonds
+for (var i = 0; i < no_bonds; i++) {
+    bonds.push({ term: 10 * (1 + i) / no_bonds, coupon: 1.3 * (1 - Math.pow(0.9, i + 1)) * 0.2, price: 115 - 30 * ((i + 1) / no_bonds) });
+    durations.push(5);
+    colours.push(d3.hsl(350 * i / no_bonds, 0.5, 0.5));
+}
 
-       var bar_scale = d3.scaleLinear().domain([0,10])     // Modified Duration (%)
-                                       .range([0,bc_width-2*pad]); 
+// Initialize Durations
+for (var i = 0; i < bonds.length; i++) {
+    recalculate(bonds[i].price, 100, bonds[i].coupon, bonds[i].term, "#b" + i);
+}
 
-       // Charts
-       var bg = d3.rgb(219,247,255);
-           bg = "white"; 
+function updateBars() {
+    sensitivities.selectAll(".bar").data(durations).attr("width", function (d, i) {
+        return bar_scale(d);
+    }).attr("height", bar_width);
+}
 
-       var svg = d3.select("#ui").append("svg")
-                                 .attr("id", "chart")
-                                 .attr("width",w)
-                                 .attr("height",h)
-                                 .style("background-color",bg);
-           
-       // Durations Bar Chart
-       var sensitivities = d3.select("#mod_dur").append("svg")
-                                            .attr("id","chart")
-                                            .attr("width",w)
-                                            .attr("height",bc_height)     
-                                            .style("background-color",/* "#ffe6ff" */ "white");
-                 
-       // Initialize Duration Bars
-          sensitivities.selectAll(".bar")
-                  .data(durations)
-                .enter().append("rect")
-                  .attr("class", "bar")
-                  .style("fill",(d,i) => colours[i])
-                  .attr("x","0")
-                  .attr("y",(d,i) => { return i*bar_width; })
-                  .attr("transform","translate("+pad+","+0+")rotate(0)");
-       
-       var Annotator = function(message,colour,x,y) {
-            return function(selection) {
-                        var words = message.split('/');   // convention used in this program
-                        selection.text('');
-                        
-                        selection.attr("y",y);
-                        selection.style("fill",colour);
+// UI Canvas parameters 
+var h = 400;
+var w = 600;
+var pad = 70;
 
-                        for (var i = 0; i < words.length; i++) {
-                            var tspan = selection.append('tspan').text(words[i]);
-                                tspan.attr('dy', '15').attr('x',x);
-                        }
-                   };
-       }
+// Draggable Shape parameters 
+var arcStroke = 10;
+var gap = 15;
 
-       // Functions triggered by user interaction 
-       
-       // set the cross-hairs when a point is dragged
-       
-       function setLines(px,py) {
-           svg.select("#touchY").attr("x1",pad)
-                                .attr("y1",py)
-                                .attr("x2",px)
-                                .attr("y2",py);
+var arcFill = "#ff9933";
+var errorFill = "red";
+var pointFill = "grey";
 
-           svg.select("#touchX").attr("x1",px)
-                                .attr("y1",py)
-                                .attr("x2",px)
-                                .attr("y2",h-pad);
-       }      
-      
-       // update parameters of the duration object on user input
+// Duration Horizontal Bar Chart parameters
+var bc_width = w;
+var bc_height = 150;
+var bc_vert_gap = 50;
+var bar_width = (bc_height - bc_vert_gap) / bonds.length;
 
-       function recalculate(price,par,coupon_rate,time,bondId) {
-            if (coupon_rate*par*time+par < price) {
-                console.log("Increase coupon or term to maturity, or decrease price"); 
-                return false;
-            } else {
-                dur.pv = price;
-                dur.m = par;
-                dur.c = coupon_rate*par;
-                dur.n = Math.round(time); // must be discrete number of years
-                
-                dur.newtonSolve(10);
-                dur.macaulayDuration();
+// Scales
 
-                var id = parseInt(bondId.substr(2));
+var x_scale = d3.scaleLinear().domain([0, 10]) // Remaining Time to maturity (years)
+.range([pad, w - pad]);
 
-                durations[id] = dur.modifiedDuration(); // this is a side effect
-                //outs.duration.innerHTML = "Duration "+durations[id].toFixed(2)+"%";
-                    return true;
-           } 
-       }
+var y_scale = d3.scaleLinear().domain([0, 0.2]) // Coupon rate 
+.range([h - pad, pad]);
 
-       /* 
-        * Drag Behaviours
-        */ 
-       
-       // utility functions
+var arc_scale = d3.scaleLinear().domain([85, 115]) // Price 
+.range([20, 50]);
 
-       function constrain(x,lower,upper) {
-            if (x > upper) {
-                return upper;
-            } else if (x < lower) {
-                return lower;
-            } else {
-                return x;
-            }
-       }
+var bar_scale = d3.scaleLinear().domain([0, 10]) // Modified Duration (%)
+.range([0, bc_width - 2 * pad]);
 
-       var set_colours = function() { svg.selectAll("path").data(bonds).style("fill",(d,i) => colours[i]); };
-       var fade_colours = function() {
-                            var arcId = parseInt(d3.select(this).attr("id").substring(1,2));
-                            svg.selectAll("path").data(bonds).style("fill",(d,i) => i != arcId ? "grey" : colours[i] );
-                          }
-       
-       // dragging
+// Charts
+var bg = d3.rgb(219, 247, 255);
+bg = "white";
 
-       var dragInner = d3.drag()
-                .on("start",fade_colours)
-                .on("drag", function(d,i) {
-                    var unitX = x_scale(1) - x_scale(0);
-                    var unitY = -(h-2*pad)/0.2; 
-                    // map pixel displacement to domain
-                    // and update bound data 
-                    // (this isn't using D3's paradigm effectively)
+var svg = d3.select("#ui").append("svg").attr("id", "chart").attr("width", w).attr("height", h).style("background-color", bg);
 
-                    d.term += d3.event.dx / unitX; 
-                    d.coupon += d3.event.dy / unitY; 
-        
-                    // constrain to draw space
-                    d.term = constrain(d.term,0,10);
-                    d.coupon = constrain(d.coupon,0,0.2);
+// Durations Bar Chart
+var sensitivities = d3.select("#mod_dur").append("svg").attr("id", "chart").attr("width", w).attr("height", bc_height).style("background-color", /* "#ffe6ff" */"white");
 
-                    //outs.term.innerHTML = "Years: "+d.term.toFixed(2);
-                    //outs.coupon.innerHTML = "Coupon: "+d.coupon.toFixed(3); 
+// Initialize Duration Bars
+sensitivities.selectAll(".bar").data(durations).enter().append("rect").attr("class", "bar").style("fill", function (d, i) {
+    return colours[i];
+}).attr("x", "0").attr("y", function (d, i) {
+    return i * bar_width;
+}).attr("transform", "translate(" + pad + "," + 0 + ")rotate(0)");
 
-                    // recalculate pixel position based on datum 
-                    var px = x_scale(d.term); 
-                    var py = y_scale(d.coupon);
-                   
-                    
-                    // and update the position attributes
-                    var currentPoint = d3.select(this)
-                                         .attr("cx",px)
-                                         .attr("cy",py);
+var Annotator = function Annotator(message, colour, x, y) {
+    return function (selection) {
+        var words = message.split('/'); // convention used in this program
+        selection.text('');
 
-                    setLines(px,py); // update the cross-hairs
-                    
-                    // find the corresponding arc for this point to 
-                    //     i)  drag it in correspondence with the point 
-                    //     ii) get the final piece of data required for 
-                    //         update of the duration object    
+        selection.attr("y", y);
+        selection.style("fill", colour);
 
-                    var arcId = "#a"+d3.select(this).attr("id").substring(1,2);
-                    
-                    // reposition
-                    var linkedArc = svg.select(arcId).attr("transform","translate(" + px  + "," + py + ")");
-                    
-                    var price = linkedArc.datum().price;
-                    
-                    // check if parameters are valid
-                    
-                    // if valid, annotate with: 
-                    var s = "Price: $"+Math.round(d.price)+"/";
-                        s += "Coupon: "+Math.round(d.coupon*100)+"%/";
-                        s += "Term: "+Math.round(d.term)+" years/";
-                        s += "Par: $"+100;
-                    var clr = "black"; 
+        for (var i = 0; i < words.length; i++) {
+            var tspan = selection.append('tspan').text(words[i]);
+            tspan.attr('dy', '15').attr('x', x);
+        }
+    };
+};
 
-                    if (!recalculate(price,100,d.coupon,Math.round(d.term),arcId)) {
-                       currentPoint.attr("fill",errorFill); 
-                       linkedArc.style("fill",errorFill);
-                       clr = errorFill;
-                       s = "Impossible/Parameters";
-                    } else {
-                       currentPoint.attr("fill",pointFill); 
-                       linkedArc.style("fill",colours[i]);
-                       updateBars();
-                    }
+// Functions triggered by user interaction 
 
-                    annotation.call(Annotator(s,clr,px+10,py+10));
-                }).on("end",set_colours); 
-          
-          // Drag behaviour for the arcs
-          // The radius determines the Price of the Bond
-          var dragOuter = d3.drag()
-                .on("start",fade_colours)
-                .on("drag",function(d,i) {
-                    // may need some logic here to map r to the correct range 
-                    var rx = d3.event.dx;
-                    var ry = d3.event.dy;
-                    var sign = Math.abs(ry) / ry; 
-                    
-                    var delta_r = -sign * Math.sqrt(rx*rx+ry*ry); 
-                        delta_r = isNaN(delta_r) ? 0 : delta_r; 
+// set the cross-hairs when a point is dragged
 
-                    var thisArc = d3.select(this);
-                        
-                    // find the corresponding circle for this arc to 
-                    // get the data required to update the duration 
+function setLines(px, py) {
+    svg.select("#touchY").attr("x1", pad).attr("y1", py).attr("x2", px).attr("y2", py);
 
-                    var circId = "#c"+thisArc.attr("id").substring(1,2);
+    svg.select("#touchX").attr("x1", px).attr("y1", py).attr("x2", px).attr("y2", h - pad);
+}
 
-                    var unit = arc_scale(1)-arc_scale(0); // one unit in the domain corresponds to this in the range 
+// update parameters of the duration object on user input
 
-                    d.price += delta_r/unit; // Nb. this modifies the datum of the arc path 
+function recalculate(price, par, coupon_rate, time, bondId) {
+    if (coupon_rate * par * time + par < price) {
+        console.log("Increase coupon or term to maturity, or decrease price");
+        return false;
+    } else {
+        dur.pv = price;
+        dur.m = par;
+        dur.c = coupon_rate * par;
+        dur.n = Math.round(time); // must be discrete number of years
 
-                    d.price = constrain(d.price,85,115)
+        dur.newtonSolve(10);
+        dur.macaulayDuration();
 
-                    //outs.price.innerHTML = "Price "+d.price.toFixed(2);
+        var id = parseInt(bondId.substr(2));
 
-                    var arc = d3.arc()
-                                .innerRadius(arc_scale(d.price))              
-                                .outerRadius(arc_scale(d.price)+arcStroke)
-                                .startAngle(-0.5)
-                                .endAngle(1.7);
+        durations[id] = dur.modifiedDuration(); // this is a side effect
+        //outs.duration.innerHTML = "Duration "+durations[id].toFixed(2)+"%";
+        return true;
+    }
+}
 
-                       thisArc.attr("d",arc);
-                    
-                    var linkedPoint = svg.select(circId);
-                    
-                    // retrieve the x,y centre of the arc by parsing the transform attribute
-                    var centreX = parseInt(thisArc.attr("transform").substring(10,17));
-                    var centreY = parseInt(thisArc.attr("transform").split(",")[1].substr(0,4)); 
-                        
-                    // Check if parameters are valid
-                    
-                    // if valid, annotate with: 
-                    var s = "Price: $"+Math.round(d.price)+"/";
-                        s += "Coupon: "+Math.round(d.coupon*100)+"%/";
-                        s += "Term: "+Math.round(d.term)+" years/";
-                        s += "Par: $"+100;
-                    var clr = "black"; 
+/* 
+ * Drag Behaviours
+ */
 
-                    if (!recalculate(d.price,100,linkedPoint.datum().coupon,linkedPoint.datum().term,circId)) {
-                       linkedPoint.attr("fill",errorFill); 
-                       thisArc.style("fill",errorFill);
-                       s = "Impossible/Parameters";
-                       clr = errorFill;
-                    } else {
-                       linkedPoint.attr("fill",pointFill); 
-                       thisArc.style("fill",colours[i]);
-                       updateBars();
-                    }
-                    
-                    annotation.call(Annotator(s,clr,centreX+10,centreY+10));
-                }).on("end",set_colours);
+// utility functions
 
-      
-  /*
-   *   Initialization and binding of data to SVGs 
-   *
-   */
+function constrain(x, lower, upper) {
+    if (x > upper) {
+        return upper;
+    } else if (x < lower) {
+        return lower;
+    } else {
+        return x;
+    }
+}
 
-       // Points
-       
-       var innerCircles = svg.selectAll("circle").data(bonds)
-                                  .enter()
-                                  .append("circle")
-                                  .attr("id",(d,i) => "c"+i)
-                                  .attr("fill","grey")
-                                  .attr("cx",d => x_scale(d.term))
-                                  .attr("cy",d => y_scale(d.coupon))
-                                  .attr("r",5)                  
-                                  .call(dragInner);
-                                 
-        // Arcs
+var set_colours = function set_colours() {
+    svg.selectAll("path").data(bonds).style("fill", function (d, i) {
+        return colours[i];
+    });
+};
+var fade_colours = function fade_colours() {
+    var arcId = parseInt(d3.select(this).attr("id").substring(1, 2));
+    svg.selectAll("path").data(bonds).style("fill", function (d, i) {
+        return i != arcId ? "grey" : colours[i];
+    });
+};
 
-        var outerCircles = (function() {
-              var arc = d3.arc()
-                          .startAngle(-0.5)
-                          .endAngle(1.7);
-             
-                  svg.selectAll("path").data(bonds).enter().append("path")
-                           .style("fill",(d,i) => colours[i])
-                           .attr("id",(d,i) => "a"+i)
-                           .attr("d", arc.innerRadius((d,i) => arc_scale(d.price)).outerRadius((d,i) => arc_scale(d.price)+arcStroke))
-                           .attr("transform",(d,i) => { return "translate(" + x_scale(d.term)  + "," + y_scale(d.coupon) + ")"; } )
-                           .call(dragOuter);
-        })();
+// dragging
 
-        // Cross hairs (helpful for reading values off axes)
-        svg.append("line").attr("id","touchY");
-        svg.append("line").attr("id","touchX");
-           
-        svg.selectAll("line").style("stroke","black").attr("class","axis_readoff");
- 
-        // define annotation here to put
-        // it on top of point / arc SVGs
-        var annotation = svg.append("text").text("")
-                         .attr("id","note")
-                         .attr("x","100")
-                         .attr("y","100")
-                         .attr("font-family", "sans-serif")
-                         .attr("font-size", "11px")
-                         .attr("fill", "steelblue")
-                         .attr("fill-opacity",1);
-           
-       
-       // Modified Durations
-       
-       updateBars();       
+var dragInner = d3.drag().on("start", fade_colours).on("drag", function (d, i) {
+    var unitX = x_scale(1) - x_scale(0);
+    var unitY = -(h - 2 * pad) / 0.2;
+    // map pixel displacement to domain
+    // and update bound data 
+    // (this isn't using D3's paradigm effectively)
 
-  /*
-   *  Axes 
-   *
-   */
+    d.term += d3.event.dx / unitX;
+    d.coupon += d3.event.dy / unitY;
 
-        // could use tickFormat() 
-        
-        // this is version 4 syntax
+    // constrain to draw space
+    d.term = constrain(d.term, 0, 10);
+    d.coupon = constrain(d.coupon, 0, 0.2);
 
-        var xAxis = d3.axisBottom(x_scale).ticks(10);
-        var yAxis = d3.axisLeft(y_scale).ticks(5);
-        var barLabels = d3.scaleOrdinal().domain(bonds.map((d,i) => i+1))       
-                                  .range(bonds.map((d,i) => i*bar_width+bar_width/2));
+    //outs.term.innerHTML = "Years: "+d.term.toFixed(2);
+    //outs.coupon.innerHTML = "Coupon: "+d.coupon.toFixed(3); 
 
-        var barAxis = d3.axisLeft(barLabels); 
+    // recalculate pixel position based on datum 
+    var px = x_scale(d.term);
+    var py = y_scale(d.coupon);
 
-            svg.append("g")
-               .attr("class","xaxis axis")                     // to help with styling 
-               .attr("transform","translate(0,"+(h - pad)+")") // trans to bottom
-               .call(xAxis);                                   // passes this group 'g' as param to xAxis
+    // and update the position attributes
+    var currentPoint = d3.select(this).attr("cx", px).attr("cy", py);
 
-            svg.append("g")
-               .attr("class","yaxis axis")                     // to help with styling 
-               .attr("transform","translate("+pad+",0)")       // shift to right 
-               .call(yAxis);
+    setLines(px, py); // update the cross-hairs
 
-            svg.selectAll(".xaxis text")                       // select all the text elements for the xaxis
-               .attr("transform", function(d) {
-               return "translate(" + this.getBBox().height*-2 + "," + this.getBBox().height + ")rotate(-45)";
-            });
+    // find the corresponding arc for this point to 
+    //     i)  drag it in correspondence with the point 
+    //     ii) get the final piece of data required for 
+    //         update of the duration object    
 
+    var arcId = "#a" + d3.select(this).attr("id").substring(1, 2);
 
-            sensitivities.append("g")
-                         .attr("class","yaxis axis")
-                         .attr("transform","translate("+pad+",0)")
-                         .call(barAxis);
+    // reposition
+    var linkedArc = svg.select(arcId).attr("transform", "translate(" + px + "," + py + ")");
 
-        var sensAxis = d3.axisBottom(bar_scale).ticks(5);
-            
-            sensitivities.append("g")
-                         .attr("class","saxis axis")
-                         .attr("transform","translate("+pad+","+bar_width*bonds.length+")")
-                         .call(sensAxis);
+    var price = linkedArc.datum().price;
 
-            sensitivities.append("text")
-                .attr("text-anchor", "middle")  // easy to centre text as transform applied to anchor
-                .attr("transform", "translate("+ (bc_width/2) +","+(140)+")rotate(0)")  
-                .attr("class","axis")
-                .text("Modified Duration (%)");
+    // check if parameters are valid
 
-         // Axis Titles 
+    // if valid, annotate with: 
+    var s = "Price: $" + Math.round(d.price) + "/";
+    s += "Coupon: " + Math.round(d.coupon * 100) + "%/";
+    s += "Term: " + Math.round(d.term) + " years/";
+    s += "Par: $" + 100;
+    var clr = "black";
 
-            svg.append("text")
-                .attr("text-anchor", "middle")  // easy to centre text as transform applied to anchor
-                .attr("transform", "translate("+ (pad/3) +","+(h/2)+")rotate(-90)")  
-                .attr("class","axis")
-                .text("Coupon Rate");
+    if (!recalculate(price, 100, d.coupon, Math.round(d.term), arcId)) {
+        currentPoint.attr("fill", errorFill);
+        linkedArc.style("fill", errorFill);
+        clr = errorFill;
+        s = "Impossible/Parameters";
+    } else {
+        currentPoint.attr("fill", pointFill);
+        linkedArc.style("fill", colours[i]);
+        updateBars();
+    }
 
-            svg.append("text")
-                .attr("text-anchor", "middle")  
-                .attr("transform", "translate("+ (w/2) +","+(h-(pad/3))+")")  // centre below axis
-                .attr("class","axis")
-                .text("Time to Maturity");
+    annotation.call(Annotator(s, clr, px + 10, py + 10));
+}).on("end", set_colours);
+
+// Drag behaviour for the arcs
+// The radius determines the Price of the Bond
+var dragOuter = d3.drag().on("start", fade_colours).on("drag", function (d, i) {
+    // may need some logic here to map r to the correct range 
+    var rx = d3.event.dx;
+    var ry = d3.event.dy;
+    var sign = Math.abs(ry) / ry;
+
+    var delta_r = -sign * Math.sqrt(rx * rx + ry * ry);
+    delta_r = isNaN(delta_r) ? 0 : delta_r;
+
+    var thisArc = d3.select(this);
+
+    // find the corresponding circle for this arc to 
+    // get the data required to update the duration 
+
+    var circId = "#c" + thisArc.attr("id").substring(1, 2);
+
+    var unit = arc_scale(1) - arc_scale(0); // one unit in the domain corresponds to this in the range 
+
+    d.price += delta_r / unit; // Nb. this modifies the datum of the arc path 
+
+    d.price = constrain(d.price, 85, 115);
+
+    //outs.price.innerHTML = "Price "+d.price.toFixed(2);
+
+    var arc = d3.arc().innerRadius(arc_scale(d.price)).outerRadius(arc_scale(d.price) + arcStroke).startAngle(-0.5).endAngle(1.7);
+
+    thisArc.attr("d", arc);
+
+    var linkedPoint = svg.select(circId);
+
+    // retrieve the x,y centre of the arc by parsing the transform attribute
+    var centreX = parseInt(thisArc.attr("transform").substring(10, 17));
+    var centreY = parseInt(thisArc.attr("transform").split(",")[1].substr(0, 4));
+
+    // Check if parameters are valid
+
+    // if valid, annotate with: 
+    var s = "Price: $" + Math.round(d.price) + "/";
+    s += "Coupon: " + Math.round(d.coupon * 100) + "%/";
+    s += "Term: " + Math.round(d.term) + " years/";
+    s += "Par: $" + 100;
+    var clr = "black";
+
+    if (!recalculate(d.price, 100, linkedPoint.datum().coupon, linkedPoint.datum().term, circId)) {
+        linkedPoint.attr("fill", errorFill);
+        thisArc.style("fill", errorFill);
+        s = "Impossible/Parameters";
+        clr = errorFill;
+    } else {
+        linkedPoint.attr("fill", pointFill);
+        thisArc.style("fill", colours[i]);
+        updateBars();
+    }
+
+    annotation.call(Annotator(s, clr, centreX + 10, centreY + 10));
+}).on("end", set_colours);
+
+/*
+ *   Initialization and binding of data to SVGs 
+ *
+ */
+
+// Points
+
+var innerCircles = svg.selectAll("circle").data(bonds).enter().append("circle").attr("id", function (d, i) {
+    return "c" + i;
+}).attr("fill", "grey").attr("cx", function (d) {
+    return x_scale(d.term);
+}).attr("cy", function (d) {
+    return y_scale(d.coupon);
+}).attr("r", 5).call(dragInner);
+
+// Arcs
+
+var outerCircles = function () {
+    var arc = d3.arc().startAngle(-0.5).endAngle(1.7);
+
+    svg.selectAll("path").data(bonds).enter().append("path").style("fill", function (d, i) {
+        return colours[i];
+    }).attr("id", function (d, i) {
+        return "a" + i;
+    }).attr("d", arc.innerRadius(function (d, i) {
+        return arc_scale(d.price);
+    }).outerRadius(function (d, i) {
+        return arc_scale(d.price) + arcStroke;
+    })).attr("transform", function (d, i) {
+        return "translate(" + x_scale(d.term) + "," + y_scale(d.coupon) + ")";
+    }).call(dragOuter);
+}();
+
+// Cross hairs (helpful for reading values off axes)
+svg.append("line").attr("id", "touchY");
+svg.append("line").attr("id", "touchX");
+
+svg.selectAll("line").style("stroke", "black").attr("class", "axis_readoff");
+
+// define annotation here to put
+// it on top of point / arc SVGs
+var annotation = svg.append("text").text("").attr("id", "note").attr("x", "100").attr("y", "100").attr("font-family", "sans-serif").attr("font-size", "11px").attr("fill", "steelblue").attr("fill-opacity", 1);
+
+// Modified Durations
+
+updateBars();
+
+/*
+ *  Axes 
+ *
+ */
+
+// could use tickFormat() 
+
+// this is version 4 syntax
+
+var xAxis = d3.axisBottom(x_scale).ticks(10);
+var yAxis = d3.axisLeft(y_scale).ticks(5);
+var barLabels = d3.scaleOrdinal().domain(bonds.map(function (d, i) {
+    return i + 1;
+})).range(bonds.map(function (d, i) {
+    return i * bar_width + bar_width / 2;
+}));
+
+var barAxis = d3.axisLeft(barLabels);
+
+svg.append("g").attr("class", "xaxis axis") // to help with styling 
+.attr("transform", "translate(0," + (h - pad) + ")") // trans to bottom
+.call(xAxis); // passes this group 'g' as param to xAxis
+
+svg.append("g").attr("class", "yaxis axis") // to help with styling 
+.attr("transform", "translate(" + pad + ",0)") // shift to right 
+.call(yAxis);
+
+svg.selectAll(".xaxis text") // select all the text elements for the xaxis
+.attr("transform", function (d) {
+    return "translate(" + this.getBBox().height * -2 + "," + this.getBBox().height + ")rotate(-45)";
+});
+
+sensitivities.append("g").attr("class", "yaxis axis").attr("transform", "translate(" + pad + ",0)").call(barAxis);
+
+var sensAxis = d3.axisBottom(bar_scale).ticks(5);
+
+sensitivities.append("g").attr("class", "saxis axis").attr("transform", "translate(" + pad + "," + bar_width * bonds.length + ")").call(sensAxis);
+
+sensitivities.append("text").attr("text-anchor", "middle") // easy to centre text as transform applied to anchor
+.attr("transform", "translate(" + bc_width / 2 + "," + 140 + ")rotate(0)").attr("class", "axis").text("Modified Duration (%)");
+
+// Axis Titles 
+
+svg.append("text").attr("text-anchor", "middle") // easy to centre text as transform applied to anchor
+.attr("transform", "translate(" + pad / 3 + "," + h / 2 + ")rotate(-90)").attr("class", "axis").text("Coupon Rate");
+
+svg.append("text").attr("text-anchor", "middle").attr("transform", "translate(" + w / 2 + "," + (h - pad / 3) + ")") // centre below axis
+.attr("class", "axis").text("Time to Maturity");
