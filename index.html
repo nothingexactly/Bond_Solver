@@ -19,7 +19,17 @@
                 font-family: sans-serif;
                 font-size: 11px;
             }
+
+            .notes {
+                font-family: Helvetica;
+                width: 510px;
+                padding: 15px;
+                border: none;
+                font-size: 85%;
+            }
+
         </style>
+
         <script type="text/javascript" language="javascript" src="https://d3js.org/d3.v4.js"></script> 
         <script type="text/javascript" language="javascript" src="./autodifferentiation.js"></script>
         <script type="text/javascript" language="javascript" src="./duration_solver.js"></script>
@@ -27,9 +37,32 @@
     </head>
 
     <body>
-        
+        <div class="notes">
+            A bond has three decisive parameters:
+            <br />
+            <ul>
+                <li>Coupon Rate</li>
+                <li>Market Price</li>
+                <li>Term to Maturity</li>
+            </ul>
+            <p>Each bond is a point enclosed by a coloured arc.</p>
+            
+            <p>The radius of a point's corresponding arc represents the price of the bond in the market. The horizontal position of the point corresponds to the remaining years until maturity. The vertical axis corresponds to the coupon rate of the bond (the proportion paid of the par value each year).</p>
+            
+            <p>Each bond can be manipulated by dragging the arc (to change the price) or the grey point (vertically to change the coupon rate or horizontally to change the term to maturity):</p>
+
+            <p>Each bar in the chart below represents the sensitivity of the price of the bond of corresponding colour to changes in market interest rates.</p>
+        </div> 
+
         <div id="ui"></div>
+
         <div id="mod_dur"></div>
+
+        <div class="notes">
+            The Modified Duration refers to the approximate percentage change in 
+            price of each bond that could be expected for a 1% change in interest rates.
+        </div>
+
         <div id="price"></div>
         <div id="coupon"></div>
         <div id="term"></div>
@@ -37,5 +70,5 @@
 
     </body>
 
-         <script type="text/javascript" language="javascript" src="./main.js"></script>
+         <script type="text/javascript" language="javascript" src="main.js"></script>
 </html>
