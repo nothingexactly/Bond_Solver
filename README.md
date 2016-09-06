@@ -14,7 +14,7 @@ Finding the Yield to Maturity, which leads to the calculation of modified durati
 
 ## Instructions
 
-I assume a bond has three decisive parameters:
+We assume a bond has three decisive parameters:
 
 * Coupon Rate
 * Market Price
