@@ -1,46 +1,50 @@
 ## Synopsis
 
+An finance-inspired exercise in visualisation and numerical methods.
+
 [Try it out here](https://cbrookhouse8.github.io/Bonds_Auto_Differentiation/)
 
-This program calculates how sensitive the price of a given bonds is to changes in interest rates.
+This program estimates the sensitivities of the prices of given bonds to changes in market interest rates based on a model of 'modified duration'.
 
-It also provides a user interface through which you can compare bonds of varying price, term to maturity, and coupon rate. 
+Roughly speaking, you specify the bonds, it tells you what they should be worth if market rates change. By tweaking the parameters, you can gain an intuition for the decisive factors that contribute to the riskiness of a bond.
 
-The aim of this program is to provide an intuition for how risky a bond might be based on the aforementioned parameters.
+*Technical Notes*
 
-Finding the Yield to Maturity, which leads to the calculation of Duration, requires a solver. This program implements a Newton-Raphson gradient descent method where first derivatives are calculated using a simple implementation of automatic differentiation.
+Finding the Yield to Maturity, which leads to the calculation of modified duration, a proxy for market risk, requires a solver: this program implements a Newton-Raphson gradient descent method where first derivatives are calculated using a simple implementation of automatic differentiation.
 
 ## Instructions
 
-The graph displays each bond as a point enclosed by a coloured arc. The radius of a point's corresponding arc represents the Price of the Bond. The horizontal position of the point corresponds to the remaining years until maturity. The vertical axis corresponds to the Coupon rate of the Bond (the proportion paid of the par value each year).
+I assume a bond has three decisive parameters:
 
-Each bond can be manipulated by dragging with your mouse either the arc (to change the price) or the grey point (to change the coupon rate or term to maturity):
+* Coupon Rate
+* Market Price
+* Term to Maturity
+
+The [graph](https://cbrookhouse8.github.io/Bonds_Auto_Differentiation/) displays each bond as a point enclosed by a coloured arc. The radius of a point's corresponding arc represents the price of the bond in the market (you specify this as part of the exercise). The horizontal position of the point corresponds to the remaining years until maturity. The vertical axis corresponds to the coupon rate of the bond (the proportion paid of the par value each year).
+
+Each bond can be manipulated by dragging the arc (to change the price) or the grey point (to change the coupon rate or term to maturity):
 
 <img src="./drag_behaviours.png" alt="ellipsoid" width="300px"/>
 
 Below the bonds there is a horizontal bar chart. Each bar represents the sensitivity of the price of the bond of corresponding colour to changes in interest rates. 
 
-The **Modified Duration (%)** metric refers to the approximate change in price of each bond that could be expected for a 1% change in interest rates.
+The **Modified Duration** refers to the approximate percentage change in price of each bond that could be expected for a 1% change in interest rates.
 
-Crucially, bond prices move inversly to interest rates. So an increase in interest rates causes a decrease in bond prices.
+Crucially, bond prices move inversely to market interest rates. So an increase in market interest rates can be expected to result in a decrease in bond prices. 
 
 ## Motivation
 
 * To use visualisation to communicate useful technical ideas to a lay audience
-* To implement the Newton-Raphson Gradient Descent using Automatic Differentiation
-* To become familiar with d3's data-binding paradigm: its limitations and possibilities
+* To implement a solver using Newton-Raphson Gradient Descent and Automatic Differentiation
+* To become more familiar with the D3 visualisation library and its data-binding paradigm
 
 ## Reflections
 
-The Horizontal axis is really discrete. However, this user interface fails to convey this adequately. The program can only work with whole number values for the term to maturity.
-
-The UI is built using d3.js. And the code possibly reveals where d3's data binding paradigm is not so well suited to UI design as it is to data visualisation.
-
-d4's approach may be a suitable alternative <https://d4.js.org/>
-
-Using redux with d3 <https://twitter.com/tonyhschu/status/732058196622245888>
-
-Using higher order functions to generate d3 drag behaviours
+* The Horizontal axis is really discrete. However, this user interface fails to convey this adequately. The program can only work with whole number values for the term to maturity.
+* The UI is built using d3.js. And the code possibly reveals where d3's data binding paradigm is not so well suited to UI design as it is to data visualisation.
+* d4's approach may be a suitable alternative <https://d4.js.org/>
+* It would be useful to show Convexity- an indication of the validity of the modified duration linear model
+* Perhaps a bond could be represented as a point in 3D space with its hue corresponding to its modified duration.
 
 ## References
 

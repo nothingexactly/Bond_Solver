@@ -419,7 +419,7 @@
                 .attr("text-anchor", "middle")  // easy to centre text as transform applied to anchor
                 .attr("transform", "translate("+ (bc_width/2) +","+(140)+")rotate(0)")  
                 .attr("class","axis")
-                .text("Modified Duration (%)");
+                .text("Modified Duration");
 
          // Axis Titles 
 
