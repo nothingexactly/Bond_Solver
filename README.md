@@ -20,7 +20,7 @@ We assume a bond has three decisive parameters:
 * Market Price
 * Term to Maturity
 
-The [graph](https://cbrookhouse8.github.io/Bonds_Auto_Differentiation/) displays each bond as a point enclosed by a coloured arc. The radius of a point's corresponding arc represents the price of the bond in the market (you specify this as part of the exercise). The horizontal position of the point corresponds to the remaining years until maturity. The vertical axis corresponds to the coupon rate of the bond (the proportion paid of the par value each year).
+The [graph](https://cbrookhouse8.github.io/Bonds_Auto_Differentiation/) displays each bond as a point enclosed by a coloured arc. The radius of a point's corresponding arc represents the price of the bond in the market (you specify this as part of the exercise). The horizontal position of the point corresponds to the remaining years until maturity. The vertical position corresponds to the coupon rate of the bond (the proportion paid of the par value each year).
 
 Each bond can be manipulated by dragging the arc (to change the price) or the grey point (to change the coupon rate or term to maturity):
 
