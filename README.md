@@ -12,7 +12,7 @@ Finding the Yield to Maturity, which leads to the calculation of Duration, requi
 
 ## Instructions
 
-The the graph displays each bond as a point enclosed by a coloured arc. The radius of a point's corresponding arc represents the Price of the Bond. The horizontal position of the point corresponds to the remaining years until maturity. The vertical axis corresponds to the Coupon rate of the Bond (the proportion paid of the par value each year).
+The graph displays each bond as a point enclosed by a coloured arc. The radius of a point's corresponding arc represents the Price of the Bond. The horizontal position of the point corresponds to the remaining years until maturity. The vertical axis corresponds to the Coupon rate of the Bond (the proportion paid of the par value each year).
 
 Each bond can be manipulated by dragging with your mouse either the arc (to change the price) or the grey point (to change the coupon rate or term to maturity):
 
