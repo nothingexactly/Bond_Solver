@@ -7,10 +7,10 @@
        outs.term = document.getElementById("term");
        outs.duration = document.getElementById("duration");
        
-       outs.price.innerHTML = "I am the price";
-       outs.coupon.innerHTML = "I am coupon rate";
-       outs.term.innerHTML = "I am term to maturity";
-       outs.duration.innerHTML = "Modified Duration";
+       //outs.price.innerHTML = "I am the price";
+       //outs.coupon.innerHTML = "I am coupon rate";
+       //outs.term.innerHTML = "I am term to maturity";
+       //outs.duration.innerHTML = "Modified Duration";
        
        // A single new duration object that will be
        // used to calculate the modified duration for
